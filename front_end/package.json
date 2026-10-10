@@ -1,0 +1,43 @@
+{
+  "name": "pao-de-queijo",
+  "version": "0.0.0",
+  "private": true,
+  "description": "This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.",
+  "homepage": "https://github.com/Gabriely-Montanhana/Site-Pao-de-Queijo#readme",
+  "bugs": {
+    "url": "https://github.com/Gabriely-Montanhana/Site-Pao-de-Queijo/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gabriely-Montanhana/Site-Pao-de-Queijo.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "eslint.config.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.6.4",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "eslint": "^10.10.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.6",
+    "globals": "^17.12.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.0"
+  }
+}
