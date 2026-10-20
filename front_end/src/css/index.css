@@ -1,0 +1,25 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif; 
+}
+
+body {
+     background-color: #fbf3e4;
+     background-image: radial-gradient(circle at 18px 16px, rgba(231, 163, 37, 0.13) 0 7px, transparent 8px);
+    background-size: 84px 84px;
+}
+
+/*INICIO DO HEADER*/
+.navbar-brand img {
+   height:58px;
+    width:auto
+}
+
+.nav-link:hover {
+    color:#ffae16;
+}
+/*FIM DO HEADER*/
+
+
