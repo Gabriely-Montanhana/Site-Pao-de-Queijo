@@ -1,4 +1,3 @@
-
 // FALTA COLOCAR OS LINK 
 export function Header() {
     return (
@@ -13,7 +12,7 @@ export function Header() {
                 </button>
                 <div class="collapse navbar-collapse" id="menu">
                     <div class="navbar-nav ms-auto">
-                        <a class="nav-link text-dark" href="">Home</a>
+                        <a class="nav-link text-dark" href="/home">Home</a>
                         <a class="nav-link text-dark" href="">Produtos</a>
                         <a class="nav-link text-dark" href="">
                             <img src="/img/logoCarrinho.svg" alt="Carrinho" width="17" height="17"></img>
