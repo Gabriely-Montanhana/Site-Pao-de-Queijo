@@ -4,8 +4,12 @@ import { Home } from './pages/home'
 function App() {
   return (
     <div>
-      <header />
-      <Home />
+      <header >
+        <Header />
+      </header >
+      <main>
+        <Home />
+      </main>
     </div>
   )
 }
