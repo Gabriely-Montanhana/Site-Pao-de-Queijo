@@ -1,3 +1,10 @@
+:root {
+  --creme: #fbf3e4;
+  --caramelo: #e7b16b;
+  --btnHover: #f5d79f;
+  --vermelho: #b82828;;
+}
+
 *{
     margin: 0;
     padding: 0;
@@ -6,21 +13,83 @@
 }
 
 body {
-     background-color: #fbf3e4;
-     background-image: radial-gradient(circle at 18px 16px, rgba(231, 163, 37, 0.13) 0 7px, transparent 8px);
+    background-color: var(--creme);
+    background-image: radial-gradient(circle at 18px 16px, rgba(231, 163, 37, 0.13) 0 7px, transparent 8px);
     background-size: 84px 84px;
 }
 
 /*INICIO DO HEADER*/
+.navbar {
+    background-color: var(--caramelo);
+}
+
 .navbar-brand img {
    height:58px;
     width:auto
 }
 
 .nav-link:hover {
-    color:#ffae16;
+    color: var(--btnHover);
 }
 /*FIM DO HEADER*/
 
-/*INICIO DO HOME*/
+/*INICIO DO CADASTRO*/
+main:has(.cadastro-form),
+main:has(.login-form) {
+    min-height: calc(100vh - 90px);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
 
+.cadastro-form,
+.login-form {
+    width: min(640px, calc(100% - 32px));
+    margin-top: auto;
+    margin-bottom: auto;
+    background-color: #fdf8f2;
+    border-color: #e4d0b4;
+    color: #3a2412;
+}
+
+.cadastro-form .campo-erro,
+.cadastro-form .field-error,
+.login-form .campo-erro,
+.login-form .field-error {
+    position: relative;
+    display: inline-block;
+    margin-top: 8px;
+    padding: 8px 12px;
+    background-color: #fff;
+    border: 1px solid var(--vermelho);
+    border-radius: 12px;
+    color: var(--vermelho);
+    font-size: 0.85rem;
+}
+
+.cadastro-form .campo-erro::before,
+.cadastro-form .field-error::before,
+.login-form .campo-erro::before,
+.login-form .field-error::before {
+    content: "";
+    position: absolute;
+    top: -7px;
+    left: 16px;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-bottom: 7px solid var(--vermelho);
+}
+
+.cadastro-form .campo-erro::after,
+.cadastro-form .field-error::after,
+.login-form .campo-erro::after,
+.login-form .field-error::after {
+    content: "";
+    position: absolute;
+    top: -5px;
+    left: 17px;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 6px solid #fff;
+}
+/*FIM DO CADASTRO*/
