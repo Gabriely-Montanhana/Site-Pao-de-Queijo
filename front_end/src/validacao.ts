@@ -82,6 +82,9 @@ export function validarCadastro(form: CadastroForm): ErrosCadastro {
     else if (!emailValido(form.email)) erros.email = "E-mail inválido.";
 
     if (!form.senha) erros.senha = "Senha é obrigatória.";
+    else if (form.senha.length < 8 || !/[A-Z]/.test(form.senha) || !/[a-z]/.test(form.senha) || !/\d/.test(form.senha) || !/[^A-Za-z0-9]/.test(form.senha)) {
+        erros.senha = "Use 8 caracteres, maiúscula, minúscula, número e símbolo.";
+    }
 
     if (!form.confirmacao) erros.confirmacao = "Confirme a senha.";
     else if (form.senha !== form.confirmacao) erros.confirmacao = "A confirmação da senha não confere.";
