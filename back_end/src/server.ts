@@ -1,12 +1,11 @@
 import express, { type Request, type Response } from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
+import 'dotenv/config';
 import bcrypt from 'bcryptjs';
 import { Usuario } from './models/Usuario';
 import { validarEmail, validarCpf, validarForcaSenha } from './utils/validacoes';
 import { sequelize, UsuarioModel } from './config/database';
 
-dotenv.config();
 
 const app = express();
 app.use(cors());
@@ -79,9 +78,9 @@ async function iniciarServidor() {
 
     console.log('Conexão com MySQL estabelecida.');
 
-    app.listen(PORTA, () => {
-      console.log(`API rodando na porta ${PORTA}`);
-    });
+   app.listen(PORTA, '0.0.0.0', () => {
+  console.log(`API rodando na porta ${PORTA}`);
+});
 
   } catch (erro) {
     console.error('Não foi possível conectar ao MySQL:', erro);
