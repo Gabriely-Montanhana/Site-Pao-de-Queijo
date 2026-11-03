@@ -3,6 +3,8 @@ import { Header } from './components/header'
 import { CadastroPage } from './pages/cadastro'
 import { Home } from './pages/home'
 import { Login } from './pages/login'
+import { Footer } from './components/footer'
+import { Sabores } from './pages/produtos'
 
 function App() {
   return (
@@ -12,11 +14,15 @@ function App() {
       </header>
       <main>
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/produtos" element={<Sabores />} />
           <Route path="/cadastro" element={<CadastroPage />} />
           <Route path="/login" element={<Login />} />
         </Routes>
       </main>
+      <footer>
+        <Footer />
+      </footer>
     </div>
   )
 }

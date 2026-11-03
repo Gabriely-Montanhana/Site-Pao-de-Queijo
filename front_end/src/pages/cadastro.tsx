@@ -1,7 +1,6 @@
 import { useState, type SubmitEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { api } from "../api/axios";
-import { mensagemDaApi } from "../api/mensagemDaApi";
+import { api, mensagemDaApi } from "../api/axios";
 import { Campo } from "../components/campo";
 import { mascaraCpf, validarCadastro, type CadastroForm, type ErrosCadastro } from "../validacao";
 
