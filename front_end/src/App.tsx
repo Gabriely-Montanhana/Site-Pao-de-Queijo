@@ -5,6 +5,7 @@ import { Home } from './pages/home'
 import { Login } from './pages/login'
 import { Footer } from './components/footer'
 import { Sabores } from './pages/produtos'
+import { CarrinhoPage } from './pages/carrinho'
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Routes>
           <Route path="/home" element={<Home />} />
           <Route path="/produtos" element={<Sabores />} />
+          <Route path="/carrinho" element={<CarrinhoPage />} />
           <Route path="/cadastro" element={<CadastroPage />} />
           <Route path="/login" element={<Login />} />
         </Routes>

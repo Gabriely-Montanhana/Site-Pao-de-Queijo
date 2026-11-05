@@ -1,4 +1,4 @@
-import { useState, type SubmitEvent } from "react";
+import { useEffect, useState, type SubmitEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api, mensagemDaApi } from "../api/axios";
 import { Campo } from "../components/campo";
@@ -16,6 +16,13 @@ export function CadastroPage() {
     const [erros, setErros] = useState<ErrosCadastro>({});
     const [erroApi, setErroApi] = useState("");
     const [loading, setLoading] = useState(false);
+    const [cadastrado, setCadastrado] = useState(false);
+
+    useEffect(() => {
+        if (!cadastrado) return;
+        const tempo = setTimeout(() => navigate("/login"), 4000);
+        return () => clearTimeout(tempo);
+    }, [cadastrado, navigate]);
 
     async function onFormSubmit(event: SubmitEvent) {
         event.preventDefault();
@@ -32,12 +39,23 @@ export function CadastroPage() {
                 senha: form.senha,
                 cpf: form.cpf.replace(/\D/g, ""),
             });
-            navigate("/login");
+            setCadastrado(true);
         } catch (falha) {
             setErroApi(mensagemDaApi(falha, "Não foi possível cadastrar."));
         } finally {
             setLoading(false);
         }
+    }
+
+    if (cadastrado) {
+        return (
+            <div className="aviso-tela" role="status">
+                <h2>Você foi cadastrado com sucesso.</h2>
+                <button type="button" className="btn btn-danger rounded-pill px-4" onClick={() => navigate("/login")}>
+                    Entrar
+                </button>
+            </div>
+        );
     }
 
     return (
