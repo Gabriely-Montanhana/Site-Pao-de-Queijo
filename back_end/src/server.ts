@@ -1,11 +1,14 @@
+import 'dotenv/config';
 import express, { type Request, type Response } from 'express';
 import cors from 'cors';
-import 'dotenv/config';
 import bcrypt from 'bcryptjs';
+import { gerarToken } from './middleware/auth';
 import { Usuario } from './models/Usuario';
 import { validarEmail, validarCpf, validarForcaSenha } from './utils/validacoes';
 import { sequelize, UsuarioModel } from './config/database';
 
+
+console.log('JWT_SECRET:', process.env.JWT_SECRET);
 
 const app = express();
 app.use(cors());
@@ -70,6 +73,75 @@ app.post('/api/auth/cadastro', async (req: Request, res: Response) => {
     });
   }
 });
+
+app.post('/api/auth/login', async (req: Request, res: Response) => {
+  try {
+    const { email, senha } = req.body as {
+      email?: string;
+      senha?: string;
+    };
+
+    if (!email?.trim() || !senha) {
+      return res.status(400).json({
+        mensagem: 'Informe email e senha.',
+      });
+    }
+
+    if (!validarEmail(email)) {
+      return res.status(400).json({
+        mensagem: 'Informe um email válido.',
+      });
+    }
+
+    const emailNormalizado = email.trim().toLowerCase();
+
+    const usuario = await UsuarioModel.findOne({
+      where: {
+        email: emailNormalizado,
+      },
+    });
+
+    if (!usuario) {
+      return res.status(401).json({
+        mensagem: 'Email ou senha incorretos.',
+      });
+    }
+
+    const senhaCorreta = await bcrypt.compare(
+      senha,
+      usuario.get('senha') as string,
+    );
+
+    if (!senhaCorreta) {
+      return res.status(401).json({
+        mensagem: 'Email ou senha incorretos.',
+      });
+    }
+
+    const token = gerarToken({
+      id: usuario.get('id') as number,
+      email: usuario.get('email') as string,
+    });
+
+    return res.status(200).json({
+      mensagem: 'Login realizado com sucesso.',
+      token,
+      usuario: {
+        id: usuario.get('id'),
+        nome: usuario.get('nome'),
+        email: usuario.get('email'),
+        cpf: usuario.get('cpf'),
+      },
+    });
+  } catch (erro) {
+    console.error('Erro ao realizar login:', erro);
+
+    return res.status(500).json({
+      mensagem: 'Erro interno ao realizar login.',
+    });
+  }
+});
+
 const PORTA = Number(process.env.PORT ?? 3000);
 async function iniciarServidor() {
   try {
