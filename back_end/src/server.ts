@@ -2,7 +2,7 @@ import 'dotenv/config';
 import express, { type Request, type Response } from 'express';
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
-import { gerarToken } from './middleware/auth';
+import { gerarToken, autenticarToken } from './middleware/auth';
 import { Usuario } from './models/Usuario';
 import { validarEmail, validarCpf, validarForcaSenha } from './utils/validacoes';
 import { sequelize, UsuarioModel } from './config/database';
@@ -138,6 +138,98 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
 
     return res.status(500).json({
       mensagem: 'Erro interno ao realizar login.',
+    });
+  }
+});
+
+app.put('/api/usuarios/me', autenticarToken, async (req: Request, res: Response) => {
+  try {
+    const usuarioId = (req as Request & { usuarioId: number }).usuarioId;
+
+    const { nome, email, senha, cpf } = req.body as {
+      nome?: string;
+      email?: string;
+      senha?: string;
+      cpf?: string;
+    };
+
+    if (!nome?.trim() || !email?.trim() || !senha || !cpf?.trim()) {
+      return res.status(400).json({
+        mensagem: 'Preencha nome, email, senha e CPF.',
+      });
+    }
+
+    if (!validarCpf(cpf)) {
+      return res.status(400).json({
+        mensagem: 'Informe um CPF válido.',
+      });
+    }
+
+    const erroSenha = validarForcaSenha(senha);
+
+    if (erroSenha) {
+      return res.status(400).json({
+        mensagem: erroSenha,
+      });
+    }
+
+    const usuario = await UsuarioModel.findByPk(usuarioId);
+
+    if (!usuario) {
+      return res.status(404).json({
+        mensagem: 'Usuário não encontrado.',
+      });
+    }
+
+    const emailAtual = usuario.get('email') as string;
+    const emailInformado = email.trim().toLowerCase();
+
+    if (emailInformado !== emailAtual) {
+      return res.status(400).json({
+        mensagem: 'O email não pode ser alterado.',
+      });
+    }
+
+    const cpfNumeros = cpf.replace(/\D/g, '');
+
+    const cpfExistente = await UsuarioModel.findOne({
+      where: {
+        cpf: cpfNumeros,
+      },
+    });
+
+    if (
+      cpfExistente &&
+      cpfExistente.get('id') !== usuarioId
+    ) {
+      return res.status(409).json({
+        mensagem: 'Este CPF já está cadastrado.',
+      });
+    }
+
+    const senhaHash = await bcrypt.hash(senha, 12);
+
+    await usuario.update({
+      nome: nome.trim(),
+      cpf: cpfNumeros,
+      senha: senhaHash,
+    });
+
+    return res.status(200).json({
+      mensagem: 'Usuário atualizado com sucesso.',
+      usuario: {
+        id: usuario.get('id'),
+        nome: usuario.get('nome'),
+        email: usuario.get('email'),
+        cpf: usuario.get('cpf'),
+      },
+    });
+
+  } catch (erro) {
+    console.error('Erro ao atualizar usuário:', erro);
+
+    return res.status(500).json({
+      mensagem: 'Erro interno ao atualizar usuário.',
     });
   }
 });
