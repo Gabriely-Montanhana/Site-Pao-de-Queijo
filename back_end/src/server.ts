@@ -16,8 +16,6 @@ import {
 } from './config/database';
 
 
-console.log('JWT_SECRET:', process.env.JWT_SECRET);
-
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -609,37 +607,26 @@ app.delete('/api/categorias/:id', autenticarToken, async (req: Request, res: Res
 
 app.post('/api/pedidos', autenticarToken, async (req, res) => {
   try {
-    const { usuarioId, status, valorTotal } = req.body;
+    const usuarioId = (req as typeof req & { usuarioId: number }).usuarioId;
+    const { status, valorTotal } = req.body;
 
-    if (
-      usuarioId === undefined ||
-      status === undefined ||
-      valorTotal === undefined
-    ) {
-      return res.status(400).json({
-        mensagem: 'Usuário, status e valor total são obrigatórios.',
-      });
-    }
-
-    if (Number(usuarioId) <= 0) {
-      return res.status(400).json({
-        mensagem: 'O usuário informado é inválido.',
-      });
-    }
-
-    if (!String(status).trim()) {
+    if (typeof status !== 'string' || !status.trim()) {
       return res.status(400).json({
         mensagem: 'O status do pedido é obrigatório.',
       });
     }
 
-    if (Number(valorTotal) < 0) {
+    if (
+      typeof valorTotal !== 'number' ||
+      !Number.isFinite(valorTotal) ||
+      valorTotal < 0
+    ) {
       return res.status(400).json({
-        mensagem: 'O valor total não pode ser negativo.',
+        mensagem: 'O valor total deve ser um número válido e não negativo.',
       });
     }
 
-    const usuario = await UsuarioModel.findByPk(Number(usuarioId));
+    const usuario = await UsuarioModel.findByPk(usuarioId);
 
     if (!usuario) {
       return res.status(404).json({
@@ -648,9 +635,9 @@ app.post('/api/pedidos', autenticarToken, async (req, res) => {
     }
 
     const pedido = await PedidoModel.create({
-      usuario_id: Number(usuarioId),
-      status: String(status).trim(),
-      valor_total: Number(valorTotal),
+      usuario_id: usuarioId,
+      status: status.trim(),
+      valor_total: valorTotal,
     });
 
     return res.status(201).json({
@@ -668,6 +655,8 @@ app.post('/api/pedidos', autenticarToken, async (req, res) => {
 
 app.get('/api/pedidos', autenticarToken, async (req, res) => {
   try {
+    const usuarioId = (req as typeof req & { usuarioId: number }).usuarioId;
+
     const pagina = Number(req.query.pagina ?? 1);
     const limite = Number(req.query.limite ?? 10);
 
@@ -686,6 +675,9 @@ app.get('/api/pedidos', autenticarToken, async (req, res) => {
     const deslocamento = (pagina - 1) * limite;
 
     const { count, rows } = await PedidoModel.findAndCountAll({
+      where: {
+        usuario_id: usuarioId,
+      },
       limit: limite,
       offset: deslocamento,
       order: [['id', 'DESC']],
@@ -712,10 +704,22 @@ app.get('/api/pedidos', autenticarToken, async (req, res) => {
 
 app.put('/api/pedidos/:id', autenticarToken, async (req, res) => {
   try {
-    const { id } = req.params;
+    const usuarioId = (req as typeof req & { usuarioId: number }).usuarioId;
+    const id = Number(req.params.id);
     const { status, valorTotal } = req.body;
 
-    const pedido = await PedidoModel.findByPk(Number(id));
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({
+        mensagem: 'ID do pedido inválido.',
+      });
+    }
+
+    const pedido = await PedidoModel.findOne({
+      where: {
+        id,
+        usuario_id: usuarioId,
+      },
+    });
 
     if (!pedido) {
       return res.status(404).json({
@@ -723,27 +727,25 @@ app.put('/api/pedidos/:id', autenticarToken, async (req, res) => {
       });
     }
 
-    if (status === undefined || valorTotal === undefined) {
-      return res.status(400).json({
-        mensagem: 'Status e valor total são obrigatórios.',
-      });
-    }
-
-    if (!String(status).trim()) {
+    if (typeof status !== 'string' || !status.trim()) {
       return res.status(400).json({
         mensagem: 'O status do pedido é obrigatório.',
       });
     }
 
-    if (Number(valorTotal) < 0) {
+    if (
+      typeof valorTotal !== 'number' ||
+      !Number.isFinite(valorTotal) ||
+      valorTotal < 0
+    ) {
       return res.status(400).json({
-        mensagem: 'O valor total não pode ser negativo.',
+        mensagem: 'O valor total deve ser um número válido e não negativo.',
       });
     }
 
     await pedido.update({
-      status: String(status).trim(),
-      valor_total: Number(valorTotal),
+      status: status.trim(),
+      valor_total: valorTotal,
     });
 
     return res.status(200).json({
@@ -761,9 +763,21 @@ app.put('/api/pedidos/:id', autenticarToken, async (req, res) => {
 
 app.delete('/api/pedidos/:id', autenticarToken, async (req, res) => {
   try {
-    const { id } = req.params;
+    const usuarioId = (req as typeof req & { usuarioId: number }).usuarioId;
+    const id = Number(req.params.id);
 
-    const pedido = await PedidoModel.findByPk(Number(id));
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({
+        mensagem: 'ID do pedido inválido.',
+      });
+    }
+
+    const pedido = await PedidoModel.findOne({
+      where: {
+        id,
+        usuario_id: usuarioId,
+      },
+    });
 
     if (!pedido) {
       return res.status(404).json({
