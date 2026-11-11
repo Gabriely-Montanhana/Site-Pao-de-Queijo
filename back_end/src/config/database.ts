@@ -99,4 +99,43 @@ export const PedidoModel = sequelize.define('Pedido', {
   timestamps: true,
 });
 
+export const EnderecoModel = sequelize.define('Endereco', {
+  id: {
+    type: DataTypes.INTEGER.UNSIGNED,
+    autoIncrement: true,
+    primaryKey: true,
+  },
+  usuario_id: {
+    type: DataTypes.INTEGER.UNSIGNED,
+    allowNull: false,
+  },
+  rua: {
+    type: DataTypes.STRING(150),
+    allowNull: false,
+  },
+  numero: {
+    type: DataTypes.STRING(20),
+    allowNull: false,
+  },
+  bairro: {
+    type: DataTypes.STRING(100),
+    allowNull: false,
+  },
+  cidade: {
+    type: DataTypes.STRING(100),
+    allowNull: false,
+  },
+  estado: {
+    type: DataTypes.STRING(2),
+    allowNull: false,
+  },
+  cep: {
+    type: DataTypes.STRING(8),
+    allowNull: false,
+  },
+}, {
+  tableName: 'enderecos',
+  timestamps: true,
+});
+
 export { sequelize };

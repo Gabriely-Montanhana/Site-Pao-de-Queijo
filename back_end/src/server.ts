@@ -4,13 +4,15 @@ import cors from 'cors';
 import bcrypt from 'bcryptjs';
 import { gerarToken, autenticarToken } from './middleware/auth';
 import { Usuario } from './models/Usuario';
+import { Endereco } from './models/endereco';
 import { validarEmail, validarCpf, validarForcaSenha } from './utils/validacoes';
 import {
   sequelize,
   UsuarioModel,
   ProdutoModel,
   CategoriaModel,
-  PedidoModel
+  PedidoModel,
+  EnderecoModel,
 } from './config/database';
 
 
@@ -779,6 +781,222 @@ app.delete('/api/pedidos/:id', autenticarToken, async (req, res) => {
 
     return res.status(500).json({
       mensagem: 'Erro interno ao excluir pedido.',
+    });
+  }
+});
+
+app.post('/api/enderecos', autenticarToken, async (req, res) => {
+  try {
+    const usuarioId = (req as typeof req & { usuarioId: number }).usuarioId;
+
+    const {
+      rua,
+      numero,
+      bairro,
+      cidade,
+      estado,
+      cep,
+    } = req.body;
+
+    if (
+      typeof rua !== 'string' ||
+      typeof numero !== 'string' ||
+      typeof bairro !== 'string' ||
+      typeof cidade !== 'string' ||
+      typeof estado !== 'string' ||
+      typeof cep !== 'string'
+    ) {
+      return res.status(400).json({
+        mensagem: 'Todos os campos do endereço são obrigatórios.',
+      });
+    }
+
+    const endereco = new Endereco(
+      usuarioId,
+      rua,
+      numero,
+      bairro,
+      cidade,
+      estado,
+      cep,
+    );
+
+    const novoEndereco = await EnderecoModel.create(
+      endereco.paraPersistencia(),
+    );
+
+    return res.status(201).json({
+      mensagem: 'Endereço cadastrado com sucesso.',
+      endereco: novoEndereco,
+    });
+  } catch (erro) {
+    if (erro instanceof Error) {
+      return res.status(400).json({
+        mensagem: erro.message,
+      });
+    }
+
+    console.error('Erro ao cadastrar endereço:', erro);
+
+    return res.status(500).json({
+      mensagem: 'Erro interno ao cadastrar endereço.',
+    });
+  }
+});
+
+app.get('/api/enderecos', autenticarToken, async (req, res) => {
+  try {
+    const usuarioId = (req as typeof req & { usuarioId: number }).usuarioId;
+
+    const pagina = Number(req.query.pagina ?? 1);
+    const limite = Number(req.query.limite ?? 10);
+
+    if (
+      !Number.isInteger(pagina) ||
+      pagina < 1 ||
+      !Number.isInteger(limite) ||
+      limite < 1 ||
+      limite > 100
+    ) {
+      return res.status(400).json({
+        mensagem: 'Página ou limite inválido.',
+      });
+    }
+
+    const deslocamento = (pagina - 1) * limite;
+
+    const { count, rows } = await EnderecoModel.findAndCountAll({
+      where: {
+        usuario_id: usuarioId,
+      },
+      limit: limite,
+      offset: deslocamento,
+      order: [['id', 'DESC']],
+    });
+
+    return res.status(200).json({
+      mensagem: 'Endereços encontrados com sucesso.',
+      enderecos: rows,
+      paginacao: {
+        pagina,
+        limite,
+        total: count,
+        totalPaginas: Math.ceil(count / limite),
+      },
+    });
+  } catch (erro) {
+    console.error('Erro ao listar endereços:', erro);
+
+    return res.status(500).json({
+      mensagem: 'Erro interno ao listar endereços.',
+    });
+  }
+});
+
+app.put('/api/enderecos/:id', autenticarToken, async (req, res) => {
+  try {
+    const usuarioId = (req as typeof req & { usuarioId: number }).usuarioId;
+    const id = Number(req.params.id);
+
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({
+        mensagem: 'ID do endereço inválido.',
+      });
+    }
+
+    const enderecoExistente = await EnderecoModel.findOne({
+      where: {
+        id,
+        usuario_id: usuarioId,
+      },
+    });
+
+    if (!enderecoExistente) {
+      return res.status(404).json({
+        mensagem: 'Endereço não encontrado.',
+      });
+    }
+
+    const { rua, numero, bairro, cidade, estado, cep } = req.body;
+
+    if (
+      typeof rua !== 'string' ||
+      typeof numero !== 'string' ||
+      typeof bairro !== 'string' ||
+      typeof cidade !== 'string' ||
+      typeof estado !== 'string' ||
+      typeof cep !== 'string'
+    ) {
+      return res.status(400).json({
+        mensagem: 'Todos os campos do endereço são obrigatórios.',
+      });
+    }
+
+    const endereco = new Endereco(
+      usuarioId,
+      rua,
+      numero,
+      bairro,
+      cidade,
+      estado,
+      cep,
+    );
+
+    await enderecoExistente.update(endereco.paraPersistencia());
+
+    return res.status(200).json({
+      mensagem: 'Endereço atualizado com sucesso.',
+      endereco: enderecoExistente,
+    });
+  } catch (erro) {
+    if (erro instanceof Error && erro.message.startsWith('O ')) {
+      return res.status(400).json({
+        mensagem: erro.message,
+      });
+    }
+
+    console.error('Erro ao atualizar endereço:', erro);
+
+    return res.status(500).json({
+      mensagem: 'Erro interno ao atualizar endereço.',
+    });
+  }
+});
+
+app.delete('/api/enderecos/:id', autenticarToken, async (req, res) => {
+  try {
+    const usuarioId = (req as typeof req & { usuarioId: number }).usuarioId;
+    const id = Number(req.params.id);
+
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({
+        mensagem: 'ID do endereço inválido.',
+      });
+    }
+
+    const endereco = await EnderecoModel.findOne({
+      where: {
+        id,
+        usuario_id: usuarioId,
+      },
+    });
+
+    if (!endereco) {
+      return res.status(404).json({
+        mensagem: 'Endereço não encontrado.',
+      });
+    }
+
+    await endereco.destroy();
+
+    return res.status(200).json({
+      mensagem: 'Endereço excluído com sucesso.',
+    });
+  } catch (erro) {
+    console.error('Erro ao excluir endereço:', erro);
+
+    return res.status(500).json({
+      mensagem: 'Erro interno ao excluir endereço.',
     });
   }
 });
