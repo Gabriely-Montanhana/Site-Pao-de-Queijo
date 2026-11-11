@@ -282,14 +282,40 @@ app.post('/api/produtos', autenticarToken, async (req: Request, res: Response) =
   }
 });
 
-app.get('/api/produtos', autenticarToken, async (_req: Request, res: Response) => {
+app.get('/api/produtos', autenticarToken, async (req, res) => {
   try {
-    const produtos = await ProdutoModel.findAll({
+    const pagina = Number(req.query.pagina ?? 1);
+    const limite = Number(req.query.limite ?? 10);
+
+    if (
+      !Number.isInteger(pagina) ||
+      pagina < 1 ||
+      !Number.isInteger(limite) ||
+      limite < 1 ||
+      limite > 100
+    ) {
+      return res.status(400).json({
+        mensagem: 'Página ou limite inválido.',
+      });
+    }
+
+    const deslocamento = (pagina - 1) * limite;
+
+    const { count, rows } = await ProdutoModel.findAndCountAll({
+      limit: limite,
+      offset: deslocamento,
       order: [['id', 'DESC']],
     });
 
     return res.status(200).json({
-      produtos,
+      mensagem: 'Produtos encontrados com sucesso.',
+      produtos: rows,
+      paginacao: {
+        pagina,
+        limite,
+        total: count,
+        totalPaginas: Math.ceil(count / limite),
+      },
     });
   } catch (erro) {
     console.error('Erro ao listar produtos:', erro);
@@ -431,14 +457,40 @@ app.post('/api/categorias', autenticarToken, async (req: Request, res: Response)
   }
 });
 
-app.get('/api/categorias', autenticarToken, async (_req: Request, res: Response) => {
+app.get('/api/categorias', autenticarToken, async (req, res) => {
   try {
-    const categorias = await CategoriaModel.findAll({
+    const pagina = Number(req.query.pagina ?? 1);
+    const limite = Number(req.query.limite ?? 10);
+
+    if (
+      !Number.isInteger(pagina) ||
+      pagina < 1 ||
+      !Number.isInteger(limite) ||
+      limite < 1 ||
+      limite > 100
+    ) {
+      return res.status(400).json({
+        mensagem: 'Página ou limite inválido.',
+      });
+    }
+
+    const deslocamento = (pagina - 1) * limite;
+
+    const { count, rows } = await CategoriaModel.findAndCountAll({
+      limit: limite,
+      offset: deslocamento,
       order: [['id', 'DESC']],
     });
 
     return res.status(200).json({
-      categorias,
+      mensagem: 'Categorias encontradas com sucesso.',
+      categorias: rows,
+      paginacao: {
+        pagina,
+        limite,
+        total: count,
+        totalPaginas: Math.ceil(count / limite),
+      },
     });
   } catch (erro) {
     console.error('Erro ao listar categorias:', erro);
@@ -614,13 +666,38 @@ app.post('/api/pedidos', autenticarToken, async (req, res) => {
 
 app.get('/api/pedidos', autenticarToken, async (req, res) => {
   try {
-    const pedidos = await PedidoModel.findAll({
+    const pagina = Number(req.query.pagina ?? 1);
+    const limite = Number(req.query.limite ?? 10);
+
+    if (
+      !Number.isInteger(pagina) ||
+      pagina < 1 ||
+      !Number.isInteger(limite) ||
+      limite < 1 ||
+      limite > 100
+    ) {
+      return res.status(400).json({
+        mensagem: 'Página ou limite inválido.',
+      });
+    }
+
+    const deslocamento = (pagina - 1) * limite;
+
+    const { count, rows } = await PedidoModel.findAndCountAll({
+      limit: limite,
+      offset: deslocamento,
       order: [['id', 'DESC']],
     });
 
     return res.status(200).json({
       mensagem: 'Pedidos encontrados com sucesso.',
-      pedidos,
+      pedidos: rows,
+      paginacao: {
+        pagina,
+        limite,
+        total: count,
+        totalPaginas: Math.ceil(count / limite),
+      },
     });
   } catch (erro) {
     console.error('Erro ao listar pedidos:', erro);
