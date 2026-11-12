@@ -23,10 +23,12 @@ export function Login() {
 
         setLoading(true);
         try {
-            await api.post("/api/auth/login", {
+            const resposta = await api.post<{ token: string; usuario: { id: number } }>("/api/auth/login", {
                 email: form.email.trim(),
                 senha: form.senha,
             });
+            localStorage.setItem("token", resposta.data.token);
+            localStorage.setItem("usuario", JSON.stringify(resposta.data.usuario));
             navigate("/");
         } catch (falha) {
             setErroApi(mensagemDaApi(falha, "Não foi possível entrar."));

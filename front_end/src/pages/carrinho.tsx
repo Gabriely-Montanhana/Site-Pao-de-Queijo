@@ -1,44 +1,24 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Alerta } from "../components/alerta";
-// import { useEffect } from "react";
-// import { api, mensagemDaApi } from "../api/axios";
+import { api, mensagemDaApi } from "../api/axios";
+import { useCarrinho, type ItemCarrinho } from "../components/carrinho";
 
-type ItemExemplo = {
-    produtoId: number;
-    nome: string;
-    preco: number;
-    imagem: string;
-    estoque: number;
-    quantidade: number;
-};
-
-const ITENS_EXEMPLO: ItemExemplo[] = [
-    { produtoId: 1, nome: "Pão de Queijo Tradicional", preco: 30, imagem: "img/tradicional.jpeg", estoque: 50, quantidade: 2 },
-    { produtoId: 2, nome: "Chipa", preco: 30, imagem: "img/chipa.jpeg", estoque: 40, quantidade: 1 },
-    { produtoId: 3, nome: "Pão de Queijo de Frango", preco: 34, imagem: "img/frango.jpeg", estoque: 35, quantidade: 1 },
-    { produtoId: 4, nome: "Pão de Queijo de Requeijão", preco: 34, imagem: "img/requeijao.jpeg", estoque: 30, quantidade: 1 },
-    { produtoId: 5, nome: "Pão de Queijo de Calabresa", preco: 34, imagem: "img/calabresa.jpeg", estoque: 25, quantidade: 1 },
-    { produtoId: 6, nome: "Pão de Queijo de Goiabada", preco: 34, imagem: "img/goiabada.jpeg", estoque: 20, quantidade: 1 },
-];
 
 function formatarPreco(valor: number) {
     return `R$ ${valor.toFixed(2).replace(".", ",")}`;
 }
 
-export function CarrinhoPage() {
-    const [itens, setItens] = useState<ItemExemplo[]>(ITENS_EXEMPLO);
-    const [erro] = useState("");
-    const [desfazer, setDesfazer] = useState<{ id: number; item: ItemExemplo; indice: number } | null>(null);
+function urlImagem(imagem?: string | null) {
+    const arquivo = (imagem ?? "").split("/").pop();
+    return arquivo ? `/img/${arquivo}` : "/img/logo.png";
+}
 
-    // Para voltar ao banco, apague ITENS_EXEMPLO, use useState([]) e descomente isto:
-    // const [itens, setItens] = useState<ItemExemplo[]>([]);
-    // const [erro, setErro] = useState("");
-    // useEffect(() => {
-    //     api.get<ItemExemplo[]>("/api/carrinho")
-    //         .then((resposta) => setItens(resposta.data))
-    //         .catch((falha: unknown) => setErro(mensagemDaApi(falha, "Não foi possível carregar o carrinho.")));
-    // }, []);
+export function CarrinhoPage() {
+    const { itens, alterar, remover, repor, limpar, total, quantidade } = useCarrinho();
+    const [desfazer, setDesfazer] = useState<{ id: number; item: ItemCarrinho; indice: number } | null>(null);
+    const [erro, setErro] = useState("");
+    const [pedidoFeito, setPedidoFeito] = useState(false);
 
     useEffect(() => {
         if (!desfazer) return;
@@ -50,37 +30,40 @@ export function CarrinhoPage() {
         const indice = itens.findIndex((item) => item.produtoId === produtoId);
         if (indice < 0) return;
         setDesfazer({ id: Date.now(), item: itens[indice], indice });
-        setItens((atual) => atual.filter((item) => item.produtoId !== produtoId));
+        remover(produtoId);
     }
 
     function desfazerExclusao() {
         if (!desfazer) return;
-        const { item, indice } = desfazer;
-        setItens((atual) => {
-            if (atual.some((linha) => linha.produtoId === item.produtoId)) return atual;
-            const proximo = [...atual];
-            proximo.splice(Math.min(indice, proximo.length), 0, item);
-            return proximo;
-        });
+        repor(desfazer.item, desfazer.indice);
         setDesfazer(null);
     }
 
-    function mudar(produtoId: number, quantidade: number) {
-        setItens((atual) => atual.flatMap((item) => {
-            if (item.produtoId !== produtoId) return [item];
-            if (quantidade <= 0) return [];
-            return [{ ...item, quantidade: Math.min(quantidade, item.estoque) }];
-        }));
+    function mudar(produtoId: number, quantidadeItem: number) {
+        alterar(produtoId, quantidadeItem);
     }
 
     function finalizar() {
-        // api.post("/api/vendas", { itens })
-        //     .then(() => setItens([]))
-        //     .catch((falha: unknown) => setErro(mensagemDaApi(falha, "Não foi possível finalizar a compra.")));
+        setErro("");
+        setPedidoFeito(false);
+        const texto = localStorage.getItem("usuario");
+        let usuario: { id?: number } | null = null;
+        try {
+            usuario = texto ? JSON.parse(texto) as { id?: number } : null;
+        } catch {
+            usuario = null;
+        }
+        api.post("/api/pedidos", {
+            usuarioId: usuario?.id,
+            status: "pendente",
+            valorTotal: total,
+        })
+            .then(() => {
+                limpar();
+                setPedidoFeito(true);
+            })
+            .catch((falha: unknown) => setErro(mensagemDaApi(falha, "Não foi possível finalizar a compra.")));
     }
-
-    const total = itens.reduce((soma, item) => soma + item.preco * item.quantidade, 0);
-    const quantidade = itens.reduce((soma, item) => soma + item.quantidade, 0);
 
     return (
         <section className="carrinho">
@@ -88,6 +71,7 @@ export function CarrinhoPage() {
                 <div>
                     <h2>Carrinho de compras</h2>
                     {erro && <p className="field-error">{erro}</p>}
+                    {pedidoFeito && <Alerta tipo="success">Pedido registrado.</Alerta>}
                     {itens.length === 0 && (
                         <div className="carrinho-card carrinho-vazio">
                             <p>Seu carrinho está vazio.</p>
@@ -98,7 +82,7 @@ export function CarrinhoPage() {
                         <div className="carrinho-card">
                             {itens.map((item) => (
                                 <article className="carrinho-item" key={item.produtoId}>
-                                    <img src={`/${item.imagem}`} alt="" />
+                                    <img src={urlImagem(item.imagem)} alt="" />
                                     <div className="carrinho-info">
                                         <h3>{item.nome}</h3>
                                         <p>Frete grátis</p>

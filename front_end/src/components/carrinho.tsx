@@ -19,6 +19,7 @@ type CarrinhoValor = {
     adicionar: (item: Entrada) => void;
     alterar: (produtoId: number, quantidade: number) => void;
     remover: (produtoId: number) => void;
+    repor: (item: ItemCarrinho, indice: number) => void;
     limpar: () => void;
 };
 
@@ -76,6 +77,15 @@ export function CarrinhoProvider({ children }: { children: ReactNode }) {
         setItens((atual) => atual.filter((linha) => linha.produtoId !== produtoId));
     }
 
+    function repor(item: ItemCarrinho, indice: number) {
+        setItens((atual) => {
+            if (atual.some((linha) => linha.produtoId === item.produtoId)) return atual;
+            const proximo = [...atual];
+            proximo.splice(Math.min(indice, proximo.length), 0, item);
+            return proximo;
+        });
+    }
+
     function limpar() {
         setItens([]);
     }
@@ -84,7 +94,7 @@ export function CarrinhoProvider({ children }: { children: ReactNode }) {
     const total = itens.reduce((soma, linha) => soma + linha.preco * linha.quantidade, 0);
 
     return (
-        <CarrinhoContexto.Provider value={{ itens, quantidade, total, adicionar, alterar, remover, limpar }}>
+        <CarrinhoContexto.Provider value={{ itens, quantidade, total, adicionar, alterar, remover, repor, limpar }}>
             {children}
             {aviso && <Alerta tipo="success">{aviso.texto}</Alerta>}
         </CarrinhoContexto.Provider>

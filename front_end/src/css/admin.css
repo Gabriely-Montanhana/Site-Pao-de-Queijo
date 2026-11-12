@@ -1,0 +1,166 @@
+/*INICIO DO ADMIN*/
+.admin-pagina {
+    display: flex;
+    align-items: flex-start;
+    gap: 28px;
+    width: min(1180px, calc(100% - 32px));
+    margin: 28px auto 64px;
+}
+
+.admin-menu {
+    flex: 0 0 220px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px 12px;
+    background: var(--caramelo);
+    border-radius: 24px;
+}
+
+.admin-menu a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    color: var(--corTexto);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.admin-menu a.ativo,
+.admin-menu a:hover {
+    background: var(--fundoCard);
+    color: var(--corTexto);
+}
+
+.admin-conteudo {
+    flex: 1;
+    min-width: 0;
+}
+
+.admin-conteudo h1 {
+    margin: 0;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800;
+    line-height: 1;
+}
+
+.admin-conteudo > p {
+    margin: 10px 0 22px;
+}
+
+.admin-cards {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.admin-card {
+    padding: 20px 22px;
+    background: var(--fundoCard);
+    border: 1px solid #e4d0b4;
+    border-radius: 24px;
+}
+
+.admin-card > span,
+.admin-painel > p {
+    display: block;
+    color: #8a6a45;
+    font-weight: 600;
+}
+
+.admin-card strong {
+    display: block;
+    margin-top: 8px;
+    font-size: clamp(1.5rem, 2.4vw, 2rem);
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+.admin-paineis {
+    display: grid;
+    grid-template-columns: 1.3fr 0.9fr;
+    gap: 16px;
+}
+
+.admin-painel h2 {
+    margin: 0 0 6px;
+    font-size: 1.6rem;
+    font-weight: 800;
+}
+
+.admin-painel > p {
+    margin: 0 0 16px;
+}
+
+.admin-linha {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 0;
+    border-top: 1px solid #f0e2cc;
+    font-weight: 700;
+}
+
+.admin-linha small {
+    font-weight: 600;
+}
+
+.admin-nivel.critico {
+    color: var(--vermelho);
+}
+
+.admin-nivel.baixo {
+    color: #a56b22;
+}
+
+.admin-aviso {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    width: min(520px, 100%);
+    margin: 12px auto 0;
+    padding: 36px 28px;
+    background: var(--fundoCard);
+    border: 1px solid #e4d0b4;
+    border-radius: 24px;
+    text-align: center;
+}
+
+.admin-aviso p {
+    margin: 0;
+    max-width: 18ch;
+    color: var(--corTexto);
+    font-size: clamp(1.35rem, 2.4vw, 1.8rem);
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+@media (max-width: 980px) {
+    .admin-pagina {
+        flex-direction: column;
+    }
+
+    .admin-menu {
+        flex-basis: auto;
+        flex-direction: row;
+        flex-wrap: wrap;
+        width: 100%;
+    }
+
+    .admin-cards,
+    .admin-paineis {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .admin-cards,
+    .admin-paineis {
+        grid-template-columns: 1fr;
+    }
+}
+/*FIM DO ADMIN*/

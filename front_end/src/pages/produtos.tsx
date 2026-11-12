@@ -1,6 +1,7 @@
-import { useState } from "react";
-// import { useEffect } from "react";
-// import { api, mensagemDaApi } from "../api/axios";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import axios from "axios";
+import { api } from "../api/axios";
 import { useCarrinho } from "../components/carrinho";
 
 type ProdutoVitrine = {
@@ -14,17 +15,46 @@ type ProdutoVitrine = {
     categoriaNome: string;
 };
 
-const PRODUTOS_EXEMPLO: ProdutoVitrine[] = [
-    { id: 1, nome: "Pão de Queijo Tradicional", descricao: "", preco: 30, estoque: 50, imagem: "img/tradicional.jpeg", categoriaId: 1, categoriaNome: "Classicos" },
-    { id: 2, nome: "Chipa", descricao: "", preco: 30, estoque: 40, imagem: "img/chipa.jpeg", categoriaId: 3, categoriaNome: "Classicos" },
-    { id: 3, nome: "Pão de Queijo de Frango", descricao: "", preco: 34, estoque: 35, imagem: "img/frango.jpeg", categoriaId: 2, categoriaNome: "Recheados" },
-    { id: 4, nome: "Pão de Queijo de Requeijão", descricao: "", preco: 34, estoque: 30, imagem: "img/requeijao.jpeg", categoriaId: 2, categoriaNome: "Recheados" },
-    { id: 5, nome: "Pão de Queijo de Calabresa", descricao: "", preco: 34, estoque: 25, imagem: "img/calabresa.jpeg", categoriaId: 2, categoriaNome: "Recheados" },
-    { id: 6, nome: "Pão de Queijo de Goiabada", descricao: "", preco: 34, estoque: 20, imagem: "img/goiabada.jpeg", categoriaId: 3, categoriaNome: "Recheados" },
-];
+
+type ProdutoApi = {
+    id: number;
+    nome: string;
+    descricao: string;
+    preco: string | number;
+    estoque: number;
+    imagem?: string | null;
+    categoria_id?: number | null;
+    ativo?: boolean | number;
+};
+
+type CategoriaApi = {
+    id: number;
+    nome: string;
+};
 
 function formatarPreco(valor: number) {
     return `R$${valor.toFixed(2).replace(".", ",")}`;
+}
+
+function arquivoDaFoto(imagem: string | null | undefined, nome: string) {
+    const enviado = (imagem ?? "").split("/").pop();
+    if (enviado) return imagem ?? "";
+    const texto = nome.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+    const conhecido = ["goiabada", "calabresa", "requeijao", "frango", "chipa", "tradicional"]
+        .find((item) => texto.includes(item));
+    return conhecido ? `${conhecido}.jpeg` : "";
+}
+
+function urlImagem(imagem?: string | null) {
+    const arquivo = (imagem ?? "").split("/").pop();
+    return arquivo ? `/img/${arquivo}` : "/img/logo.png";
+}
+
+function grupoDaCategoria(nome: string) {
+    const texto = nome.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+    if (texto.includes("reche")) return "recheados";
+    if (texto.includes("especial")) return "especiais";
+    return "classicos";
 }
 
 function Cartao({ produto }: { produto: ProdutoVitrine }) {
@@ -34,7 +64,7 @@ function Cartao({ produto }: { produto: ProdutoVitrine }) {
 
     return (
         <article className="sabor">
-            <img src={`/${produto.imagem}`} alt="" />
+            <img src={urlImagem(produto.imagem)} alt="" />
             <strong>{produto.nome}</strong>
             <span>({formatarPreco(produto.preco)})</span>
             <button
@@ -56,20 +86,41 @@ function Cartao({ produto }: { produto: ProdutoVitrine }) {
 }
 
 export function Sabores() {
-    const [produtos] = useState<ProdutoVitrine[]>(PRODUTOS_EXEMPLO);
-    const [erro] = useState("");
+    const [produtos, setProdutos] = useState<ProdutoVitrine[]>([]);
+    const [erro, setErro] = useState("");
+    const [pedirLogin, setPedirLogin] = useState(false);
+    useEffect(() => {
+        Promise.all([
+            api.get<{ produtos: ProdutoApi[] }>("/api/produtos"),
+            api.get<{ categorias: CategoriaApi[] }>("/api/categorias"),
+        ])
+            .then(([produtosResposta, categoriasResposta]) => {
+                const nomes = new Map(categoriasResposta.data.categorias.map((categoria) => [categoria.id, categoria.nome]));
+                setProdutos(produtosResposta.data.produtos
+                    .filter((produto) => produto.ativo !== 0 && produto.ativo !== false)
+                    .map((produto) => ({
+                        id: produto.id,
+                        nome: produto.nome,
+                        descricao: produto.descricao,
+                        preco: Number(produto.preco),
+                        estoque: produto.estoque,
+                        imagem: arquivoDaFoto(produto.imagem, produto.nome),
+                        categoriaId: produto.categoria_id ?? 0,
+                        categoriaNome: nomes.get(produto.categoria_id ?? 0) ?? "",
+                    })));
+            })
+            .catch((falha: unknown) => {
+                const semLogin = axios.isAxiosError(falha) && falha.response?.status === 401;
+                setPedirLogin(semLogin);
+                setErro(semLogin
+                    ? "Entre na sua conta para ver os produtos."
+                    : "Não foi possível carregar os sabores.");
+            });
+    }, []);
 
-    // Para voltar ao banco, apague PRODUTOS_EXEMPLO, use useState([]) e descomente isto:
-    // const [produtos, setProdutos] = useState<ProdutoVitrine[]>([]);
-    // const [erro, setErro] = useState("");
-    // useEffect(() => {
-    //     api.get<ProdutoVitrine[]>("/api/vitrine/produtos")
-    //         .then((resposta) => setProdutos(resposta.data))
-    //         .catch((falha: unknown) => setErro(mensagemDaApi(falha, "Não foi possível carregar os sabores.")));
-    // }, []);
-
-    const classicos = produtos.filter((produto) => produto.categoriaNome === "Classicos");
-    const recheados = produtos.filter((produto) => produto.categoriaNome === "Recheados");
+    const classicos = produtos.filter((produto) => grupoDaCategoria(produto.categoriaNome) === "classicos");
+    const recheados = produtos.filter((produto) => grupoDaCategoria(produto.categoriaNome) === "recheados");
+    const especiais = produtos.filter((produto) => grupoDaCategoria(produto.categoriaNome) === "especiais");
 
     return (
         <section className="sabores" id="sabores">
@@ -84,18 +135,36 @@ export function Sabores() {
                 <path fill="#e7b16b" fillRule="evenodd" d="M0 0h1440v120H0Z M0 58c180 62 340-8 560 8 210 16 330 54 520 18 150-28 250-6 360 8v28H0Z" />
             </svg>
             <div className="sabores-corpo">
-                {erro && <p className="field-error">{erro}</p>}
+                {erro && (
+                    <div className="sabores-aviso">
+                        <p>{erro}</p>
+                        {pedirLogin && (
+                            <Link className="btn btn-danger rounded-pill px-4" to="/login">Entrar</Link>
+                        )}
+                    </div>
+                )}
                 {!erro && produtos.length === 0 && <p>Carregando sabores...</p>}
                 {classicos.length > 0 && (
-                    <div className="fileira fileira-classicos">
-                        {classicos.map((produto) => <Cartao key={produto.id} produto={produto} />)}
-                    </div>
+                    <>
+                        <h3>Clássicos:</h3>
+                        <div className="fileira fileira-classicos">
+                            {classicos.map((produto) => <Cartao key={produto.id} produto={produto} />)}
+                        </div>
+                    </>
                 )}
                 {recheados.length > 0 && (
                     <>
                         <h3>Recheados:</h3>
                         <div className="fileira fileira-recheados">
                             {recheados.map((produto) => <Cartao key={produto.id} produto={produto} />)}
+                        </div>
+                    </>
+                )}
+                {especiais.length > 0 && (
+                    <>
+                        <h3>Especiais:</h3>
+                        <div className="fileira fileira-recheados">
+                            {especiais.map((produto) => <Cartao key={produto.id} produto={produto} />)}
                         </div>
                     </>
                 )}
