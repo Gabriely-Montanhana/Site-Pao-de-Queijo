@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Alerta } from "../components/alerta";
-import { api, mensagemDaApi } from "../api/axios";
 import { useCarrinho, type ItemCarrinho } from "../components/carrinho";
-import { guardarDetalhePedido } from "../detalhesPedido";
 
 
 function formatarPreco(valor: number) {
@@ -16,10 +14,9 @@ function urlImagem(imagem?: string | null) {
 }
 
 export function CarrinhoPage() {
-    const { itens, alterar, remover, repor, limpar, total, quantidade } = useCarrinho();
+    const navigate = useNavigate();
+    const { itens, alterar, remover, repor, total, quantidade } = useCarrinho();
     const [desfazer, setDesfazer] = useState<{ id: number; item: ItemCarrinho; indice: number } | null>(null);
-    const [erro, setErro] = useState("");
-    const [pedidoFeito, setPedidoFeito] = useState(false);
 
     useEffect(() => {
         if (!desfazer) return;
@@ -44,43 +41,11 @@ export function CarrinhoPage() {
         alterar(produtoId, quantidadeItem);
     }
 
-    function finalizar() {
-        setErro("");
-        setPedidoFeito(false);
-        const texto = localStorage.getItem("usuario");
-        let usuario: { id?: number } | null = null;
-        try {
-            usuario = texto ? JSON.parse(texto) as { id?: number } : null;
-        } catch {
-            usuario = null;
-        }
-        api.post<{ pedido?: { id?: number } }>("/api/pedidos", {
-            usuarioId: usuario?.id,
-            status: "pendente",
-            valorTotal: total,
-        })
-            .then((resposta) => {
-                const pedidoId = resposta.data.pedido?.id;
-                if (pedidoId) {
-                    guardarDetalhePedido(pedidoId, itens.map((item) => ({
-                        nome: item.nome,
-                        quantidade: item.quantidade,
-                        preco: item.preco,
-                    })));
-                }
-                limpar();
-                setPedidoFeito(true);
-            })
-            .catch((falha: unknown) => setErro(mensagemDaApi(falha, "Não foi possível finalizar a compra.")));
-    }
-
     return (
         <section className="carrinho">
             <div className="carrinho-miolo">
                 <div>
                     <h2>Carrinho de compras</h2>
-                    {erro && <p className="field-error">{erro}</p>}
-                    {pedidoFeito && <Alerta tipo="success">Pedido registrado.</Alerta>}
                     {itens.length === 0 && (
                         <div className="carrinho-card carrinho-vazio">
                             <p>Seu carrinho está vazio.</p>
@@ -114,7 +79,7 @@ export function CarrinhoPage() {
                     <p>Produtos ({quantidade}) <span>{formatarPreco(total)}</span></p>
                     <p>Frete <span className="carrinho-frete">Grátis</span></p>
                     <p className="carrinho-total-linha">Total <strong>{formatarPreco(total)}</strong></p>
-                    <button type="button" onClick={finalizar} disabled={itens.length === 0}>Continuar a compra</button>
+                    <button type="button" onClick={() => navigate("/endereco")} disabled={itens.length === 0}>Continuar a compra</button>
                 </aside>
             </div>
             {desfazer && (

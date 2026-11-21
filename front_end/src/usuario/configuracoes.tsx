@@ -1,9 +1,10 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { api, mensagemDaApi } from "../api/axios";
 import { Campo } from "../components/campo";
 import { lerDetalhePedido } from "../detalhesPedido";
 import { mascaraCpf, validarEdicaoUsuario, type CadastroForm, type ErrosCadastro } from "../validacao";
+import { ContaMenu } from "./contaMenu";
 import { useUsuario, type Usuario } from "./contextoUsuario";
 
 const STATUS: Record<string, string> = {
@@ -111,7 +112,8 @@ export function Configuracoes() {
     const [aviso, setAviso] = useState("");
     const [enviando, setEnviando] = useState(false);
     const [editando, setEditando] = useState(false);
-    const [painel, setPainel] = useState<"dados" | "pedidos">("dados");
+    const [params] = useSearchParams();
+    const painel = params.get("aba") === "pedidos" ? "pedidos" : "dados";
 
     useEffect(() => {
         if (!localStorage.getItem("token") || !usuario) navigate("/login", { replace: true });
@@ -180,24 +182,10 @@ export function Configuracoes() {
         setEditando(false);
     }
 
-    const inicial = (usuario?.nome || "U").trim().charAt(0).toUpperCase();
-
     return (
         <section className="ml-conta">
             <div className="ml-miolo">
-                <aside className="ml-menu">
-                    <div className="ml-perfil">
-                        <span className="ml-avatar" aria-hidden="true">{inicial}</span>
-                        <div>
-                            <strong>{usuario?.nome || "Minha conta"}</strong>
-                            <small>{usuario?.email}</small>
-                        </div>
-                    </div>
-                    <nav>
-                        <button className={painel === "dados" ? "ativo" : undefined} type="button" onClick={() => setPainel("dados")}>Meus dados</button>
-                        <button className={painel === "pedidos" ? "ativo" : undefined} type="button" onClick={() => setPainel("pedidos")}>Pedidos</button>
-                    </nav>
-                </aside>
+                <ContaMenu ativo={painel} />
                 <div className="ml-painel">
                     <h1>{painel === "pedidos" ? "Pedidos" : "Meus dados"}</h1>
                     <p>{painel === "pedidos" ? "Pedidos feitos nesta conta." : editando ? "Altere os dados e confirme a senha para salvar." : "Informações da sua conta."}</p>

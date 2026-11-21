@@ -10,7 +10,10 @@ import { CadastroPage } from './pages/cadastro'
 import { Login } from './pages/login'
 import { Sabores } from './pages/produtos'
 import { CarrinhoPage } from './pages/carrinho'
+import { CheckoutPage } from './pages/checkout'
 import { Configuracoes } from './usuario/configuracoes.tsx'
+import { EnderecosLista } from './usuario/enderecosLista.tsx'
+import { EnderecoCadastro } from './usuario/enderecoCadastro.tsx'
 import { Dashboard } from './admin/pages/dashboard'
 import { ProdutosLista } from './admin/pages/listagem/produtosLista.tsx'
 import { ProdutoCadastro } from './admin/pages/cadastro/produtoCadastro.tsx'
@@ -34,9 +37,13 @@ createRoot(document.getElementById('root')!).render(
             <Route path="/" element={<App />} />
             <Route path="/produtos" element={<Sabores />} />
             <Route path="/carrinho" element={<CarrinhoPage />} />
+            <Route path="/endereco" element={<CheckoutPage />} />
             <Route path="/cadastro" element={<CadastroPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/configuracoes" element={<Configuracoes />} />
+            <Route path="/configuracoes/enderecos/novo" element={<EnderecoCadastro />} />
+            <Route path="/configuracoes/enderecos/:id/editar" element={<EnderecoCadastro />} />
+            <Route path="/configuracoes/enderecos" element={<EnderecosLista />} />
             <Route path="/admin/dashboard" element={<Dashboard />} />
             <Route path="/admin/produtos/novo" element={<ProdutoCadastro />} />
             <Route path="/admin/produtos/:id/editar" element={<ProdutoCadastro />} />

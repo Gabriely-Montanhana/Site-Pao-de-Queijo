@@ -154,6 +154,46 @@ export function validarCategoria(nome: string) {
     return "";
 }
 
+export type EnderecoForm = {
+    rua: string;
+    numero: string;
+    bairro: string;
+    cidade: string;
+    estado: string;
+    cep: string;
+}
+
+export type ErrosEndereco = {
+    rua?: string;
+    numero?: string;
+    bairro?: string;
+    cidade?: string;
+    estado?: string;
+    cep?: string;
+}
+
+export function mascaraCep(valor: string) {
+    const digitos = valor.replace(/\D/g, "").slice(0, 8);
+    return digitos.replace(/(\d{5})(\d)/, "$1-$2");
+}
+
+export function validarEndereco(form: EnderecoForm): ErrosEndereco {
+    const erros: ErrosEndereco = {};
+
+    if (!form.rua.trim()) erros.rua = "A rua é obrigatória.";
+    if (!form.numero.trim()) erros.numero = "O número é obrigatório.";
+    if (!form.bairro.trim()) erros.bairro = "O bairro é obrigatório.";
+    if (!form.cidade.trim()) erros.cidade = "A cidade é obrigatória.";
+
+    if (!form.estado.trim()) erros.estado = "O estado é obrigatório.";
+    else if (!/^[A-Za-z]{2}$/.test(form.estado.trim())) erros.estado = "Use a sigla com 2 letras.";
+
+    if (!form.cep.trim()) erros.cep = "O CEP é obrigatório.";
+    else if (!/^\d{8}$/.test(form.cep.replace(/\D/g, ""))) erros.cep = "O CEP deve conter 8 números.";
+
+    return erros;
+}
+
 export type VendaForm = {
     status: string;
     valorTotal: string;
