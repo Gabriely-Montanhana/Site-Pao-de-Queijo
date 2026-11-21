@@ -170,6 +170,34 @@
     margin: 0 0 20px;
 }
 
+.admin-confirma article.admin-detalhe {
+    width: min(560px, 100%);
+    text-align: left;
+}
+
+.admin-detalhe h2 {
+    text-align: center;
+}
+
+.admin-detalhe h3 {
+    margin: 18px 0 8px;
+    font-size: 1.05rem;
+    font-weight: 800;
+}
+
+.admin-detalhe ul {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.admin-detalhe li + li {
+    margin-top: 6px;
+}
+
+.admin-detalhe .d-flex {
+    margin-top: 20px;
+}
+
 .admin-topo {
     display: flex;
     flex-wrap: wrap;
@@ -244,6 +272,7 @@
     opacity: 0.45;
 }
 
+.admin-conteudo > .field-error,
 .admin-form .campo-erro,
 .admin-form .field-error {
     display: inline-block;

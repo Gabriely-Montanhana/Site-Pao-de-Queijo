@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Alerta } from "../components/alerta";
 import { api, mensagemDaApi } from "../api/axios";
 import { useCarrinho, type ItemCarrinho } from "../components/carrinho";
+import { guardarDetalhePedido } from "../detalhesPedido";
 
 
 function formatarPreco(valor: number) {
@@ -53,12 +54,20 @@ export function CarrinhoPage() {
         } catch {
             usuario = null;
         }
-        api.post("/api/pedidos", {
+        api.post<{ pedido?: { id?: number } }>("/api/pedidos", {
             usuarioId: usuario?.id,
             status: "pendente",
             valorTotal: total,
         })
-            .then(() => {
+            .then((resposta) => {
+                const pedidoId = resposta.data.pedido?.id;
+                if (pedidoId) {
+                    guardarDetalhePedido(pedidoId, itens.map((item) => ({
+                        nome: item.nome,
+                        quantidade: item.quantidade,
+                        preco: item.preco,
+                    })));
+                }
                 limpar();
                 setPedidoFeito(true);
             })

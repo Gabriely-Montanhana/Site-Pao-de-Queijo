@@ -48,20 +48,319 @@ body {
 .nav-link:hover {
     color: var(--btnHover);
 }
+
+.navbar-expand-lg .navbar-nav {
+    align-items: center;
+}
+
+.navbar-nav .nav-link {
+    display: flex;
+    align-items: center;
+}
+
+.nav-conta {
+    gap: 8px;
+}
+
+.nav-conta.dropdown-toggle::after {
+    margin-top: 0;
+    align-self: center;
+}
+
+.nav-avatar {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--fundoCard);
+    color: var(--vermelho);
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.nav-usuario {
+    margin-left: 0;
+    font-weight: 700;
+}
 /*FIM DO HEADER*/
+
+/*INICIO DA CONFIGURACAO*/
+main:has(.ml-conta) {
+    display: flex;
+    flex-direction: column;
+}
+
+.ml-conta {
+    flex: 1;
+    width: 100%;
+    padding: 28px 16px 48px;
+    color: var(--corTexto);
+}
+
+.ml-miolo {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    gap: 24px;
+    width: min(1080px, 100%);
+    margin: 0 auto;
+    align-items: start;
+}
+
+.ml-card {
+    background: var(--fundoCard);
+    border: 1px solid #e4d0b4;
+    border-radius: 24px;
+}
+
+.ml-menu {
+    padding: 16px 12px;
+    background: var(--caramelo);
+    border-radius: 24px;
+}
+
+.ml-perfil {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 8px 16px;
+}
+
+.ml-perfil strong,
+.ml-perfil small {
+    display: block;
+}
+
+.ml-perfil strong {
+    font-size: 16px;
+}
+
+.ml-perfil small {
+    color: var(--corTexto);
+    font-size: 13px;
+    font-weight: 600;
+    word-break: break-all;
+}
+
+.ml-avatar {
+    display: grid;
+    place-items: center;
+    flex: 0 0 48px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--fundoCard);
+    color: var(--vermelho);
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.ml-menu nav {
+    display: flex;
+    flex-direction: column;
+    padding: 8px 0;
+}
+
+.ml-menu button {
+    width: 100%;
+    margin-top: 6px;
+    padding: 10px 14px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--corTexto);
+    font-weight: 700;
+    text-align: left;
+}
+
+.ml-menu button.ativo,
+.ml-menu button:hover {
+    background: var(--fundoCard);
+    color: var(--corTexto);
+}
+
+.ml-pedido + .ml-pedido {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #f0e2cc;
+}
+
+.ml-pedido strong {
+    display: block;
+    font-size: 16px;
+}
+
+.ml-pedido span,
+.ml-pedido small {
+    display: block;
+    margin-top: 4px;
+    color: #8a6a45;
+    font-weight: 600;
+}
+
+.ml-pedido ul {
+    margin: 8px 0 0;
+    padding-left: 18px;
+    color: var(--corTexto);
+}
+
+.ml-painel h1 {
+    margin: 0 0 6px;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+.ml-painel > p {
+    margin: 0 0 16px;
+    color: #8a6a45;
+    font-weight: 600;
+}
+
+.ml-card {
+    margin-bottom: 16px;
+    padding: 24px;
+}
+
+.ml-card h2 {
+    margin: 0 0 18px;
+    font-size: 1.4rem;
+    font-weight: 800;
+}
+
+.ml-conta .form-label {
+    margin-bottom: 6px;
+    color: var(--corTexto);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.ml-conta .form-control {
+    height: 48px;
+    border: 1px solid #e4d0b4;
+    border-radius: 12px;
+    color: var(--corTexto);
+    font-size: 16px;
+    background: #fff;
+}
+
+.ml-conta .form-control:focus {
+    border-color: var(--caramelo);
+    box-shadow: 0 0 0 0.2rem rgba(231, 177, 107, 0.35);
+}
+
+.ml-conta .form-control:disabled {
+    background: var(--creme);
+    color: #8a6a45;
+}
+
+.ml-conta .form-control[aria-invalid="true"] {
+    border-color: var(--vermelho);
+}
+
+.ml-conta .campo-erro,
+.ml-conta .field-error {
+    position: relative;
+    display: inline-block;
+    margin-top: 8px;
+    padding: 8px 12px;
+    background-color: #fff;
+    border: 1px solid var(--vermelho);
+    border-radius: 12px;
+    color: var(--vermelho);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.ml-conta .campo-erro::before,
+.ml-conta .field-error::before {
+    content: "";
+    position: absolute;
+    top: -7px;
+    left: 16px;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-bottom: 7px solid var(--vermelho);
+}
+
+.ml-conta .campo-erro::after,
+.ml-conta .field-error::after {
+    content: "";
+    position: absolute;
+    top: -5px;
+    left: 17px;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 6px solid #fff;
+}
+
+.ml-nota {
+    margin: -6px 0 16px;
+    color: #8a6a45;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.ml-alerta {
+    margin: 0 0 16px;
+    padding: 12px 16px;
+    border-radius: 16px;
+    background: #fff;
+    border: 1px solid var(--vermelho);
+    color: var(--vermelho);
+    font-weight: 700;
+}
+
+.ml-alerta-ok {
+    border-color: #2f7d32;
+    color: #245c28;
+}
+
+.ml-info {
+    margin: 0 0 20px;
+}
+
+.ml-info div {
+    padding: 12px 0;
+    border-bottom: 1px solid #f0e2cc;
+}
+
+.ml-info dt {
+    color: #8a6a45;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.ml-info dd {
+    margin: 4px 0 0;
+    font-size: 16px;
+}
+
+.ml-acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+@media (max-width: 800px) {
+    .ml-miolo {
+        grid-template-columns: 1fr;
+    }
+}
+/*FIM DA CONFIGURACAO*/
 
 /*INICIO DO CADASTRO*/
 main:has(.cadastro-form),
-main:has(.login-form),
-main:has(.configuracoes-form) {
+main:has(.login-form) {
     display: flex;
     justify-content: center;
     align-items: flex-start;
 }
 
 .cadastro-form,
-.login-form,
-.configuracoes-form {
+.login-form {
     width: min(640px, calc(100% - 32px));
     margin-top: auto;
     margin-bottom: auto;

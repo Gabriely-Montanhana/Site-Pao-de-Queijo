@@ -12,7 +12,7 @@ export function AdminLayout() {
             <NavLink to="/admin/categorias" className={({ isActive }) => isActive ? "ativo" : undefined}>
                 <i className="bi bi-tags"></i> Categorias
             </NavLink>
-            <NavLink to="/admin/vendas">
+            <NavLink to="/admin/vendas" className={({ isActive }) => isActive ? "ativo" : undefined}>
                 <i className="bi bi-receipt"></i> Vendas
             </NavLink>
         </aside>

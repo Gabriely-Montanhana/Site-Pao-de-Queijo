@@ -3,9 +3,11 @@ import { Link, useNavigate } from "react-router-dom";
 import { api, mensagemDaApi } from "../api/axios";
 import { Campo } from "../components/campo";
 import { validarLogin, type ErrosLogin, type LoginForm } from "../validacao";
+import { useUsuario, type Usuario } from "../usuario/contextoUsuario";
 
 export function Login() {
     const navigate = useNavigate();
+    const { entrar } = useUsuario();
     const [form, setForm] = useState<LoginForm>({
         email: "",
         senha: "",
@@ -23,12 +25,11 @@ export function Login() {
 
         setLoading(true);
         try {
-            const resposta = await api.post<{ token: string; usuario: { id: number } }>("/api/auth/login", {
+            const resposta = await api.post<{ token: string; usuario: Usuario }>("/api/auth/login", {
                 email: form.email.trim(),
                 senha: form.senha,
             });
-            localStorage.setItem("token", resposta.data.token);
-            localStorage.setItem("usuario", JSON.stringify(resposta.data.usuario));
+            entrar(resposta.data.token, resposta.data.usuario);
             navigate("/");
         } catch (falha) {
             setErroApi(mensagemDaApi(falha, "Não foi possível entrar."));

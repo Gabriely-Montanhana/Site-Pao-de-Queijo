@@ -95,6 +95,24 @@ export function validarCadastro(form: CadastroForm): ErrosCadastro {
     return erros;
 }
 
+export function validarEdicaoUsuario(form: CadastroForm, emailOriginal: string, cpfOriginal: string): ErrosCadastro {
+    const erros: ErrosCadastro = {};
+
+    if (!form.nome.trim()) erros.nome = "Nome é obrigatório.";
+
+    if (form.email.trim().toLowerCase() !== emailOriginal.trim().toLowerCase()) {
+        erros.email = "O e-mail não pode ser alterado.";
+    }
+
+    if (form.cpf.replace(/\D/g, "") !== cpfOriginal.replace(/\D/g, "")) {
+        erros.cpf = "O CPF não pode ser alterado.";
+    }
+
+    if (!form.senha) erros.senha = "Confirme sua senha para salvar.";
+
+    return erros;
+}
+
 export type ProdutoForm = {
     nome: string;
     descricao: string;
@@ -134,4 +152,28 @@ export function validarProduto(form: ProdutoForm): ErrosProduto {
 export function validarCategoria(nome: string) {
     if (!nome.trim()) return "O nome é obrigatório.";
     return "";
+}
+
+export type VendaForm = {
+    status: string;
+    valorTotal: string;
+}
+
+export type ErrosVenda = {
+    status?: string;
+    valorTotal?: string;
+}
+
+export function validarVenda(form: VendaForm): ErrosVenda {
+    const erros: ErrosVenda = {};
+
+    if (!form.status.trim()) erros.status = "O status é obrigatório.";
+
+    if (!form.valorTotal.trim()) erros.valorTotal = "O valor é obrigatório.";
+    else {
+        const valor = Number(form.valorTotal.replace(",", "."));
+        if (!Number.isFinite(valor) || valor < 0) erros.valorTotal = "Informe um valor válido.";
+    }
+
+    return erros;
 }

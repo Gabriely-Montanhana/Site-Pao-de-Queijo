@@ -1,13 +1,13 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useUsuario } from "../usuario/contextoUsuario";
 
 export function Header() {
     const navigate = useNavigate();
-    useLocation();
-    const logado = Boolean(localStorage.getItem("token"));
+    const { usuario, sair: encerrar } = useUsuario();
+    const logado = Boolean(usuario);
 
     function sair() {
-        localStorage.removeItem("token");
-        localStorage.removeItem("usuario");
+        encerrar();
         navigate("/");
     }
 
@@ -30,8 +30,13 @@ export function Header() {
                             <img src="/img/logoCarrinho.svg" alt="Carrinho" width="17" height="17"></img>
                         </Link>
                         <li className="nav-item dropdown">
-                            <a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                               <img src="/img/logoUsuario.svg" alt="Usuario" width="20" height="20"></img>
+                            <a className="nav-link dropdown-toggle nav-conta" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                               {usuario?.nome ? (
+                                   <span className="nav-avatar" aria-hidden="true">{usuario.nome.trim().charAt(0).toUpperCase()}</span>
+                               ) : (
+                                   <img src="/img/logoUsuario.svg" alt="Usuario" width="20" height="20"></img>
+                               )}
+                               {usuario?.nome && <span className="nav-usuario">{usuario.nome}</span>}
                             </a>
                             <ul className="dropdown-menu">
                                 {logado ? (
