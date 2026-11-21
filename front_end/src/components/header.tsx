@@ -41,7 +41,7 @@ export function Header() {
                             <ul className="dropdown-menu">
                                 {logado ? (
                                     <>
-                                        <li><Link className="dropdown-item" to="/configuracoes">Configurações</Link></li>
+                                        <li><Link className="dropdown-item" to="/configuracoes">Meu Perfil</Link></li>
                                         <li><button className="dropdown-item" type="button" onClick={sair}>Sair</button></li>
                                     </>
                                 ) : (
