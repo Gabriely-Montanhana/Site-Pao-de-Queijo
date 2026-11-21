@@ -116,6 +116,143 @@
     color: #a56b22;
 }
 
+.admin-titulo-busca {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.admin-busca {
+    min-width: min(280px, 100%);
+    border: 1px solid #e4d0b4;
+    border-radius: 999px;
+    padding: 10px 16px;
+    background: var(--fundoCard);
+    color: var(--corTexto);
+}
+
+.admin-acoes {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.admin-confirma {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(63, 42, 20, 0.35);
+}
+
+.admin-confirma article {
+    width: min(440px, 100%);
+    padding: 28px 24px;
+    background: var(--fundoCard);
+    border: 1px solid #e4d0b4;
+    border-radius: 24px;
+    text-align: center;
+}
+
+.admin-confirma h2 {
+    margin: 0 0 8px;
+    font-size: 1.6rem;
+    font-weight: 800;
+}
+
+.admin-confirma p {
+    margin: 0 0 20px;
+}
+
+.admin-topo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 22px;
+}
+
+.admin-topo p {
+    margin: 10px 0 0;
+}
+
+.admin-form {
+    width: min(640px, 100%);
+}
+
+.admin-ok {
+    margin: 0 0 16px;
+    color: #245c28;
+    font-weight: 700;
+}
+
+.admin-tabela {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.admin-tabela th,
+.admin-tabela td {
+    padding: 12px 8px;
+    border-bottom: 1px solid #f0e2cc;
+    text-align: left;
+    vertical-align: top;
+}
+
+.admin-tabela th {
+    font-size: 0.85rem;
+    color: #8a6a45;
+}
+
+.admin-tabela th:last-child,
+.admin-tabela td:last-child {
+    width: 1%;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.admin-tabela td:last-child .admin-acoes {
+    justify-content: flex-end;
+}
+
+.admin-paginas {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 16px;
+    font-weight: 700;
+}
+
+.admin-paginas button {
+    border: 1px solid #e4d0b4;
+    background: var(--creme);
+    color: var(--corTexto);
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-weight: 700;
+}
+
+.admin-paginas button:disabled {
+    opacity: 0.45;
+}
+
+.admin-form .campo-erro,
+.admin-form .field-error {
+    display: inline-block;
+    margin-top: 8px;
+    color: var(--vermelho);
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
 .admin-aviso {
     display: flex;
     flex-direction: column;

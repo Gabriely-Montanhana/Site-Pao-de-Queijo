@@ -89,6 +89,7 @@ export function Sabores() {
     const [produtos, setProdutos] = useState<ProdutoVitrine[]>([]);
     const [erro, setErro] = useState("");
     const [pedirLogin, setPedirLogin] = useState(false);
+    const [busca, setBusca] = useState("");
     useEffect(() => {
         Promise.all([
             api.get<{ produtos: ProdutoApi[] }>("/api/produtos"),
@@ -118,9 +119,14 @@ export function Sabores() {
             });
     }, []);
 
-    const classicos = produtos.filter((produto) => grupoDaCategoria(produto.categoriaNome) === "classicos");
-    const recheados = produtos.filter((produto) => grupoDaCategoria(produto.categoriaNome) === "recheados");
-    const especiais = produtos.filter((produto) => grupoDaCategoria(produto.categoriaNome) === "especiais");
+    const termo = busca.trim().normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+    const visiveis = produtos.filter((produto) => {
+        if (!termo) return true;
+        return produto.nome.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().includes(termo);
+    });
+    const classicos = visiveis.filter((produto) => grupoDaCategoria(produto.categoriaNome) === "classicos");
+    const recheados = visiveis.filter((produto) => grupoDaCategoria(produto.categoriaNome) === "recheados");
+    const especiais = visiveis.filter((produto) => grupoDaCategoria(produto.categoriaNome) === "especiais");
 
     return (
         <section className="sabores" id="sabores">
@@ -130,6 +136,14 @@ export function Sabores() {
                     <br />
                     disponíveis:
                 </h2>
+                <input
+                    className="sabores-busca"
+                    type="search"
+                    placeholder="Pesquisar"
+                    value={busca}
+                    aria-label="Pesquisar produtos"
+                    onChange={(event) => setBusca(event.target.value)}
+                />
             </div>
             <svg className="onda" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
                 <path fill="#e7b16b" fillRule="evenodd" d="M0 0h1440v120H0Z M0 58c180 62 340-8 560 8 210 16 330 54 520 18 150-28 250-6 360 8v28H0Z" />
@@ -144,6 +158,7 @@ export function Sabores() {
                     </div>
                 )}
                 {!erro && produtos.length === 0 && <p>Carregando sabores...</p>}
+                {!erro && produtos.length > 0 && visiveis.length === 0 && <p>Nenhum produto encontrado.</p>}
                 {classicos.length > 0 && (
                     <>
                         <h3>Clássicos:</h3>

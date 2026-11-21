@@ -11,6 +11,10 @@ import { Sabores } from './pages/produtos'
 import { CarrinhoPage } from './pages/carrinho'
 import { Configuracoes } from './usuario/configuracoes.tsx'
 import { Dashboard } from './admin/pages/dashboard'
+import { ProdutosLista } from './admin/pages/listagem/produtosLista.tsx'
+import { ProdutoCadastro } from './admin/pages/cadastro/produtoCadastro.tsx'
+import { CategoriasLista } from './admin/pages/listagem/categoriasLista.tsx'
+import { CategoriaCadastro } from './admin/pages/cadastro/categoriaCadastro.tsx'
 import './css/index.css'
 import './css/admin.css'
 
@@ -30,6 +34,12 @@ createRoot(document.getElementById('root')!).render(
             <Route path="/login" element={<Login />} />
             <Route path="/configuracoes" element={<Configuracoes />} />
             <Route path="/admin/dashboard" element={<Dashboard />} />
+            <Route path="/admin/produtos/novo" element={<ProdutoCadastro />} />
+            <Route path="/admin/produtos/:id/editar" element={<ProdutoCadastro />} />
+            <Route path="/admin/produtos" element={<ProdutosLista />} />
+            <Route path="/admin/categorias/novo" element={<CategoriaCadastro />} />
+            <Route path="/admin/categorias/:id/editar" element={<CategoriaCadastro />} />
+            <Route path="/admin/categorias" element={<CategoriasLista />} />
           </Routes>
         </main>
         <footer>

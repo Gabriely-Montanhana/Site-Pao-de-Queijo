@@ -94,3 +94,44 @@ export function validarCadastro(form: CadastroForm): ErrosCadastro {
 
     return erros;
 }
+
+export type ProdutoForm = {
+    nome: string;
+    descricao: string;
+    preco: string;
+    estoque: string;
+    categoriaId: string;
+}
+
+export type ErrosProduto = {
+    nome?: string;
+    descricao?: string;
+    preco?: string;
+    estoque?: string;
+    categoriaId?: string;
+}
+
+export function validarProduto(form: ProdutoForm): ErrosProduto {
+    const erros: ErrosProduto = {};
+
+    if (!form.nome.trim()) erros.nome = "O nome é obrigatório.";
+    if (!form.descricao.trim()) erros.descricao = "A descrição é obrigatória.";
+
+    if (!form.preco.trim()) erros.preco = "O preço é obrigatório.";
+    else {
+        const preco = Number(form.preco.replace(",", "."));
+        if (!Number.isFinite(preco) || preco < 0) erros.preco = "Informe um preço válido.";
+    }
+
+    if (!form.estoque.trim()) erros.estoque = "O estoque é obrigatório.";
+    else if (!/^\d+$/.test(form.estoque.trim())) erros.estoque = "O estoque precisa ser um número inteiro.";
+
+    if (!form.categoriaId) erros.categoriaId = "A categoria é obrigatória.";
+
+    return erros;
+}
+
+export function validarCategoria(nome: string) {
+    if (!nome.trim()) return "O nome é obrigatório.";
+    return "";
+}

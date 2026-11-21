@@ -21,6 +21,18 @@ body {
     color: var(--corTexto);
 }
 
+/*INICIO DO MIOLHO DA PAGINA*/
+#root {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+#root > main {
+    flex: 1 0 auto;
+}
+/*FIM DO MIOLHO DA PAGINA*/
+
 
 
 /*INICIO DO HEADER*/
@@ -42,7 +54,6 @@ body {
 main:has(.cadastro-form),
 main:has(.login-form),
 main:has(.configuracoes-form) {
-    min-height: calc(100vh - 90px);
     display: flex;
     justify-content: center;
     align-items: flex-start;
@@ -136,8 +147,13 @@ main:has(.configuracoes-form) {
 
 /*INICIO DOS PRODUTOS*/
 .sabores-topo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 24px;
     background: var(--caramelo);
-    padding: 28px 8vw 0;
+    padding: 28px 8vw 18px;
 }
 
 .sabores-topo h2 {
@@ -146,6 +162,16 @@ main:has(.configuracoes-form) {
     font-size: clamp(2.8rem, 6vw, 4.6rem);
     font-weight: 800;
     line-height: 0.95;
+}
+
+.sabores-busca {
+    width: min(360px, 100%);
+    margin: 0;
+    border: 0;
+    border-radius: 999px;
+    padding: 10px 16px;
+    background: var(--fundoCard);
+    color: var(--corTexto);
 }
 
 .onda {
@@ -308,8 +334,6 @@ main:has(.configuracoes-form) {
 }
 
 .carrinho {
-   
-    min-height: calc(100vh - 90px);
     padding: 32px 16px 64px;
     color: #333;
 }
@@ -498,6 +522,7 @@ main:has(.configuracoes-form) {
 
 /*INICIO DO FOOTER*/
 footer {
+    margin-top: 0;
     background-color: var(--caramelo);
 }
 /*FIM DO FOOTER*/
