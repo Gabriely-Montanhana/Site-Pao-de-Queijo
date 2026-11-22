@@ -24,15 +24,43 @@ type PedidoApi = {
     valor_total: string | number;
 };
 
+type ProdutoApi = {
+    id: number;
+    nome: string;
+    preco: string | number;
+    estoque: number;
+};
+
+
 export function VendaCadastro() {
     const navigate = useNavigate();
     const { id } = useParams();
     const editando = Boolean(id);
     const [form, setForm] = useState<VendaForm>(vazio);
+    const [produtos, setProdutos] = useState<ProdutoApi[]>([]);
+    const [produtoId, setProdutoId] = useState("");
+    const [quantidade, setQuantidade] = useState("1");
     const [erros, setErros] = useState<Partial<VendaForm>>({});
     const [erroApi, setErroApi] = useState("");
     const [enviando, setEnviando] = useState(false);
     const [aviso, setAviso] = useState("");
+
+useEffect(() => {
+    if (!localStorage.getItem("token") || editando) return;
+
+    api.get<{ produtos: ProdutoApi[] }>("/api/produtos", {
+        params: { pagina: 1, limite: 100 },
+    })
+        .then((resposta) => {
+            setProdutos(resposta.data.produtos);
+        })
+        .catch((falha: unknown) => {
+            setErroApi(
+                mensagemDaApi(falha, "Não foi possível carregar os produtos.")
+            );
+        });
+}, [editando]);
+
 
     useEffect(() => {
         if (!aviso) return;
@@ -74,18 +102,48 @@ export function VendaCadastro() {
     async function salvar(event: FormEvent) {
         event.preventDefault();
         setErroApi("");
-        const encontrados = validarVenda(form);
-        setErros(encontrados);
-        if (Object.keys(encontrados).length > 0) return;
+       
+if (editando) {
+    const encontrados = validarVenda(form);
+    setErros(encontrados);
+    if (Object.keys(encontrados).length > 0) return;
+} else {
+    setErros({});
+
+    if (!produtoId || !Number.isInteger(Number(quantidade)) || Number(quantidade) <= 0) {
+        setErroApi("Selecione um produto e informe uma quantidade válida.");
+        return;
+    }
+
+    const produtoSelecionado = produtos.find(
+        (produto) => produto.id === Number(produtoId)
+    );
+
+    if (!produtoSelecionado || Number(quantidade) > produtoSelecionado.estoque) {
+        setErroApi("Produto indisponível ou estoque insuficiente.");
+        return;
+    }
+}
+
 
         setEnviando(true);
         try {
-            const corpo = {
-                status: form.status.trim(),
-                valorTotal: Number(form.valorTotal.replace(",", ".")),
-            };
-            if (editando) await api.put(`/api/pedidos/${id}`, corpo);
-            else await api.post("/api/pedidos", corpo);
+            
+if (editando) {
+    await api.put(`/api/pedidos/${id}`, {
+        status: form.status.trim(),
+    });
+} else {
+    await api.post("/api/pedidos", {
+        itens: [
+            {
+                produtoId: Number(produtoId),
+                quantidade: Number(quantidade),
+            },
+        ],
+    });
+}
+
             setAviso(editando ? "Venda atualizada com sucesso." : "Venda cadastrada com sucesso.");
         } catch (falha) {
             setErroApi(mensagemDaApi(falha, editando ? "Não foi possível salvar a venda." : "Não foi possível cadastrar a venda."));
@@ -101,7 +159,51 @@ export function VendaCadastro() {
                 <h1>{editando ? "Editar venda" : "Nova venda"}</h1>
                 <p>{editando ? "Altere o status e salve." : "Registre uma nova venda."}</p>
                 <form className="admin-card admin-form" onSubmit={salvar} noValidate>
+
+{!editando && (
+    <>
+        <div className="mb-3">
+            <label className="form-label fw-semibold" htmlFor="venda-produto">
+                Produto
+            </label>
+            <select
+                id="venda-produto"
+                className="form-select"
+                value={produtoId}
+                onChange={(event) => setProdutoId(event.target.value)}
+                required
+            >
+                <option value="">Selecione um produto</option>
+                {produtos.map((produto) => (
+                    <option key={produto.id} value={produto.id}>
+                        {produto.nome} - R$ {Number(produto.preco).toFixed(2)}
+                        {" "} (Estoque: {produto.estoque})
+                    </option>
+                ))}
+            </select>
+        </div>
+
+        <div className="mb-3">
+            <label className="form-label fw-semibold" htmlFor="venda-quantidade">
+                Quantidade
+            </label>
+            <input
+                id="venda-quantidade"
+                type="number"
+                className="form-control"
+                min="1"
+                step="1"
+                value={quantidade}
+                onChange={(event) => setQuantidade(event.target.value)}
+                required
+            />
+        </div>
+    </>
+)}
+
                     {erroApi && <p className="field-error">{erroApi}</p>}
+                    {editando && (
+                        <>
                     <div className="mb-3">
                         <label className="form-label fw-semibold" htmlFor="venda-status">Status</label>
                         <select
@@ -127,6 +229,8 @@ export function VendaCadastro() {
                         disabled={editando}
                         onChange={(valorTotal) => setForm({ ...form, valorTotal })}
                     />
+                        </>
+)}
                     <div className="d-flex flex-wrap gap-3">
                         <button className="btn btn-danger rounded-pill px-4" type="submit" disabled={enviando}>
                             {enviando ? "Salvando..." : editando ? "Salvar" : "Cadastrar"}
