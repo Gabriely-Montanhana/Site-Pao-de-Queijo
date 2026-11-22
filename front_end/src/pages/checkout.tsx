@@ -93,20 +93,30 @@ export function CheckoutPage() {
         if (Object.keys(encontrados).length > 0) return;
 
         setLoading(true);
-        try {
-            await api.post("/api/enderecos", dadosDoEndereco());
-            const resposta = await api.get<{ enderecos: EnderecoSalvo[] }>("/api/enderecos", { params: { limite: 100 } });
-            setEnderecos(resposta.data.enderecos ?? []);
-            setForm(VAZIO);
-            setErros({});
-            setEscolhido(null);
-            setAdicionando(false);
-        } catch (falha) {
-            setErroApi(mensagemDaApi(falha, "Não foi possível adicionar o endereço."));
-        } finally {
-            setLoading(false);
-        }
-    }
+       
+try {
+    await api.post("/api/enderecos", dadosDoEndereco());
+
+    const resposta = await api.get<{
+        enderecos: EnderecoSalvo[];
+    }>("/api/enderecos", {
+        params: { limite: 100 },
+    });
+
+    setEnderecos(resposta.data.enderecos ?? []);
+    setForm(VAZIO);
+    setErros({});
+    setEscolhido(null);
+    setAdicionando(false);
+} catch (falha) {
+    setErroApi(
+        mensagemDaApi(falha, "Não foi possível adicionar o endereço.")
+    );
+} finally {
+    setLoading(false);
+}
+}
+
 
     async function onFormSubmit(event: SubmitEvent) {
         event.preventDefault();
@@ -131,10 +141,12 @@ export function CheckoutPage() {
             if (!usandoSalvo) {
                 await api.post("/api/enderecos", dadosDoEndereco());
             }
-            const resposta = await api.post<{ pedido?: { id?: number } }>("/api/pedidos", {
-                status: "pendente",
-                valorTotal: total,
-            });
+           const resposta = await api.post<{ pedido?: { id?: number } }>("/api/pedidos", {
+    itens: itens.map((item) => ({
+        produtoId: item.produtoId,
+        quantidade: item.quantidade,
+    })),
+});
             const pedidoId = resposta.data.pedido?.id;
             if (pedidoId) {
                 guardarDetalhePedido(pedidoId, itens.map((item) => ({

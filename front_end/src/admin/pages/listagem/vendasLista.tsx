@@ -225,11 +225,11 @@ export function VendasLista() {
         let ativo = true;
         async function carregar() {
             try {
-                const resposta = await api.get<ListaPedidos>("/api/pedidos", { params: { pagina: 1, limite: 100 } });
+                const resposta = await api.get<ListaPedidos>("/api/admin/pedidos", { params: { pagina: 1, limite: 100 } });
                 const lista = [...resposta.data.pedidos];
                 const totalPaginas = resposta.data.paginacao?.totalPaginas ?? 1;
                 for (let paginaLista = 2; paginaLista <= totalPaginas; paginaLista += 1) {
-                    const proxima = await api.get<ListaPedidos>("/api/pedidos", { params: { pagina: paginaLista, limite: 100 } });
+                    const proxima = await api.get<ListaPedidos>("/api/admin/pedidos", { params: { pagina: paginaLista, limite: 100 } });
                     lista.push(...proxima.data.pedidos);
                 }
                 if (!ativo) return;

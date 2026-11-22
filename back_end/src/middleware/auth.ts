@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { UsuarioModel } from '../config/database';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -50,6 +51,50 @@ export function autenticarToken(
   } catch {
     res.status(401).json({
       mensagem: 'Token inválido ou expirado.',
+    });
+  }
+
+}
+
+export async function autorizarAdmin(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const usuarioId = (req as Request & {
+      usuarioId: number;
+    }).usuarioId;
+
+    if (!usuarioId) {
+      res.status(401).json({
+        mensagem: 'Usuário não autenticado.',
+      });
+      return;
+    }
+
+    const usuario = await UsuarioModel.findByPk(usuarioId);
+
+    if (!usuario) {
+      res.status(401).json({
+        mensagem: 'Usuário não encontrado.',
+      });
+      return;
+    }
+
+    if (usuario.get('perfil') !== 'admin') {
+      res.status(403).json({
+        mensagem: 'Acesso permitido somente para administradores.',
+      });
+      return;
+    }
+
+    next();
+  } catch (erro) {
+    console.error('Erro ao verificar administrador:', erro);
+
+    res.status(500).json({
+      mensagem: 'Erro interno ao verificar permissões.',
     });
   }
 }

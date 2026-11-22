@@ -2,7 +2,7 @@ import 'dotenv/config';
 import express, { type Request, type Response } from 'express';
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
-import { gerarToken, autenticarToken } from './middleware/auth';
+import { gerarToken, autenticarToken, autorizarAdmin } from './middleware/auth';
 import { Usuario } from './models/Usuario';
 import { Endereco } from './models/endereco';
 import { validarEmail, validarCpf, validarForcaSenha } from './utils/validacoes';
@@ -13,6 +13,7 @@ import {
   CategoriaModel,
   PedidoModel,
   EnderecoModel,
+  ItemPedidoModel,
 } from './config/database';
 
 
@@ -240,7 +241,7 @@ app.put('/api/usuarios/me', autenticarToken, async (req: Request, res: Response)
   }
 });
 
-app.post('/api/produtos', autenticarToken, async (req: Request, res: Response) => {
+app.post('/api/produtos', autenticarToken, autorizarAdmin, async (req: Request, res: Response) => {
   try {
     const { nome, descricao, preco, estoque, categoriaId } = req.body as {
       nome?: string;
@@ -326,7 +327,7 @@ app.get('/api/produtos', autenticarToken, async (req, res) => {
   }
 });
 
-app.put('/api/produtos/:id', autenticarToken, async (req: Request, res: Response) => {
+app.put('/api/produtos/:id', autenticarToken,autorizarAdmin, async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
 
@@ -384,7 +385,7 @@ app.put('/api/produtos/:id', autenticarToken, async (req: Request, res: Response
   }
 });
 
-app.delete('/api/produtos/:id', autenticarToken, async (req: Request, res: Response) => {
+app.delete('/api/produtos/:id', autenticarToken,autorizarAdmin, async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
 
@@ -416,7 +417,7 @@ app.delete('/api/produtos/:id', autenticarToken, async (req: Request, res: Respo
   }
 });
 
-app.post('/api/categorias', autenticarToken, async (req: Request, res: Response) => {
+app.post('/api/categorias', autenticarToken, autorizarAdmin, async (req: Request, res: Response) => {
   try {
     const { nome } = req.body as {
       nome?: string;
@@ -501,7 +502,7 @@ app.get('/api/categorias', autenticarToken, async (req, res) => {
   }
 });
 
-app.put('/api/categorias/:id', autenticarToken, async (req: Request, res: Response) => {
+app.put('/api/categorias/:id', autenticarToken,autorizarAdmin, async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
 
@@ -561,7 +562,7 @@ app.put('/api/categorias/:id', autenticarToken, async (req: Request, res: Respon
   }
 });
 
-app.delete('/api/categorias/:id', autenticarToken, async (req: Request, res: Response) => {
+app.delete('/api/categorias/:id', autenticarToken,autorizarAdmin, async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
 
@@ -605,24 +606,15 @@ app.delete('/api/categorias/:id', autenticarToken, async (req: Request, res: Res
   }
 });
 
+
 app.post('/api/pedidos', autenticarToken, async (req, res) => {
   try {
     const usuarioId = (req as typeof req & { usuarioId: number }).usuarioId;
-    const { status, valorTotal } = req.body;
+    const { itens } = req.body;
 
-    if (typeof status !== 'string' || !status.trim()) {
+    if (!Array.isArray(itens) || itens.length === 0) {
       return res.status(400).json({
-        mensagem: 'O status do pedido é obrigatório.',
-      });
-    }
-
-    if (
-      typeof valorTotal !== 'number' ||
-      !Number.isFinite(valorTotal) ||
-      valorTotal < 0
-    ) {
-      return res.status(400).json({
-        mensagem: 'O valor total deve ser um número válido e não negativo.',
+        mensagem: 'O pedido precisa ter pelo menos um produto.',
       });
     }
 
@@ -634,10 +626,101 @@ app.post('/api/pedidos', autenticarToken, async (req, res) => {
       });
     }
 
-    const pedido = await PedidoModel.create({
-      usuario_id: usuarioId,
-      status: status.trim(),
-      valor_total: valorTotal,
+    const pedido = await sequelize.transaction(async (transacao) => {
+      let totalCentavos = 0;
+      const itensValidados: Array<{
+        produtoId: number;
+        quantidade: number;
+        precoUnitario: number;
+      }> = [];
+
+      const idsUtilizados = new Set<number>();
+
+      for (const item of itens) {
+        const produtoId = item?.produtoId;
+        const quantidade = item?.quantidade;
+
+        if (
+          !Number.isInteger(produtoId) ||
+          produtoId <= 0 ||
+          !Number.isInteger(quantidade) ||
+          quantidade <= 0
+        ) {
+          throw new Error('ITEM_INVALIDO');
+        }
+
+        if (idsUtilizados.has(produtoId)) {
+          throw new Error('PRODUTO_DUPLICADO');
+        }
+
+        idsUtilizados.add(produtoId);
+
+        const produto = await ProdutoModel.findByPk(produtoId, {
+          transaction: transacao,
+          lock: transacao.LOCK.UPDATE,
+        });
+
+        if (!produto) {
+          throw new Error('PRODUTO_NAO_ENCONTRADO');
+        }
+
+        const estoque = Number(produto.get('estoque'));
+        const precoUnitario = Number(produto.get('preco'));
+
+        if (
+          !Number.isInteger(estoque) ||
+          estoque < quantidade
+        ) {
+          throw new Error('ESTOQUE_INSUFICIENTE');
+        }
+
+        if (!Number.isFinite(precoUnitario) || precoUnitario < 0) {
+          throw new Error('PRECO_INVALIDO');
+        }
+
+        const precoCentavos = Math.round(precoUnitario * 100);
+        totalCentavos += precoCentavos * quantidade;
+
+        if (!Number.isSafeInteger(totalCentavos)) {
+          throw new Error('TOTAL_INVALIDO');
+        }
+
+        itensValidados.push({
+          produtoId,
+          quantidade,
+          precoUnitario,
+        });
+
+        await produto.update(
+          { estoque: estoque - quantidade },
+          { transaction: transacao }
+        );
+      }
+
+      const novoPedido = await PedidoModel.create(
+        {
+          usuario_id: usuarioId,
+          status: 'pendente',
+          valor_total: totalCentavos / 100,
+        },
+        { transaction: transacao }
+      );
+
+      const pedidoId = Number(novoPedido.get('id'));
+
+      for (const item of itensValidados) {
+        await ItemPedidoModel.create(
+          {
+            pedido_id: pedidoId,
+            produto_id: item.produtoId,
+            quantidade: item.quantidade,
+            preco_unitario: item.precoUnitario,
+          },
+          { transaction: transacao }
+        );
+      }
+
+      return novoPedido;
     });
 
     return res.status(201).json({
@@ -645,10 +728,95 @@ app.post('/api/pedidos', autenticarToken, async (req, res) => {
       pedido,
     });
   } catch (erro) {
+    if (erro instanceof Error) {
+      const mensagens: Record<string, string> = {
+        ITEM_INVALIDO: 'Produto ou quantidade inválida.',
+        PRODUTO_DUPLICADO: 'O mesmo produto foi enviado mais de uma vez.',
+        PRODUTO_NAO_ENCONTRADO: 'Produto não encontrado.',
+        ESTOQUE_INSUFICIENTE: 'Estoque insuficiente.',
+        PRECO_INVALIDO: 'Preço do produto inválido.',
+        TOTAL_INVALIDO: 'Valor total do pedido inválido.',
+      };
+
+      if (mensagens[erro.message]) {
+        return res.status(400).json({
+          mensagem: mensagens[erro.message],
+        });
+      }
+    }
+
     console.error('Erro ao criar pedido:', erro);
 
     return res.status(500).json({
       mensagem: 'Erro interno ao criar pedido.',
+    });
+  }
+});
+
+
+// Listar todas as vendas - somente administrador
+app.get('/api/admin/pedidos', autenticarToken, autorizarAdmin, async (req, res) => {
+  try {
+    const pagina = Number(req.query.pagina ?? 1);
+    const limite = Number(req.query.limite ?? 10);
+
+    if (
+      !Number.isInteger(pagina) ||
+      pagina < 1 ||
+      !Number.isInteger(limite) ||
+      limite < 1 ||
+      limite > 100
+    ) {
+      return res.status(400).json({
+        mensagem: 'Página ou limite inválido.',
+      });
+    }
+
+    const deslocamento = (pagina - 1) * limite;
+
+   const { count, rows } = await PedidoModel.findAndCountAll({
+  limit: limite,
+  offset: deslocamento,
+  order: [['id', 'DESC']],
+});
+
+const pedidosComCliente = await Promise.all(
+  rows.map(async (pedido) => {
+    const dadosPedido = pedido.get({ plain: true });
+    const usuarioId = Number(pedido.get('usuario_id'));
+
+    const usuario = await UsuarioModel.findByPk(usuarioId);
+    const enderecos = await EnderecoModel.findAll({
+  where: { usuario_id: usuarioId },
+});
+
+    return {
+  ...dadosPedido,
+  usuario_nome: usuario?.get('nome') ?? null,
+  usuario_email: usuario?.get('email') ?? null,
+  usuario_cpf: usuario?.get('cpf') ?? null,
+  enderecos: enderecos.map((endereco) =>
+    endereco.get({ plain: true })
+  ),
+};
+  })
+);
+
+    return res.status(200).json({
+      mensagem: 'Todas as vendas encontradas com sucesso.',
+      pedidos: pedidosComCliente,
+      paginacao: {
+        pagina,
+        limite,
+        total: count,
+        totalPaginas: Math.ceil(count / limite),
+      },
+    });
+  } catch (erro) {
+    console.error('Erro ao listar vendas administrativas:', erro);
+
+    return res.status(500).json({
+      mensagem: 'Erro interno ao listar vendas.',
     });
   }
 });
@@ -702,11 +870,10 @@ app.get('/api/pedidos', autenticarToken, async (req, res) => {
   }
 });
 
-app.put('/api/pedidos/:id', autenticarToken, async (req, res) => {
+app.put('/api/pedidos/:id', autenticarToken, autorizarAdmin, async (req, res) => {
   try {
-    const usuarioId = (req as typeof req & { usuarioId: number }).usuarioId;
     const id = Number(req.params.id);
-    const { status, valorTotal } = req.body;
+    const { status } = req.body;
 
     if (!Number.isInteger(id) || id <= 0) {
       return res.status(400).json({
@@ -714,12 +881,7 @@ app.put('/api/pedidos/:id', autenticarToken, async (req, res) => {
       });
     }
 
-    const pedido = await PedidoModel.findOne({
-      where: {
-        id,
-        usuario_id: usuarioId,
-      },
-    });
+   const pedido = await PedidoModel.findByPk(id);
 
     if (!pedido) {
       return res.status(404).json({
@@ -733,26 +895,107 @@ app.put('/api/pedidos/:id', autenticarToken, async (req, res) => {
       });
     }
 
-    if (
-      typeof valorTotal !== 'number' ||
-      !Number.isFinite(valorTotal) ||
-      valorTotal < 0
-    ) {
-      return res.status(400).json({
-        mensagem: 'O valor total deve ser um número válido e não negativo.',
-      });
-    }
+   const statusPermitidos = [
+  'pendente',
+  'pago',
+  'enviado',
+  'entregue',
+  'cancelado',
+];
 
-    await pedido.update({
-      status: status.trim(),
-      valor_total: valorTotal,
+if (
+  typeof status !== 'string' ||
+  !statusPermitidos.includes(status.trim().toLowerCase())
+) {
+  return res.status(400).json({
+    mensagem: 'Status do pedido inválido.',
+  });
+}
+
+
+const novoStatus = status.trim().toLowerCase();
+
+await sequelize.transaction(async (transacao) => {
+  const pedidoAtual = await PedidoModel.findByPk(id, {
+    transaction: transacao,
+    lock: transacao.LOCK.UPDATE,
+  });
+
+  if (!pedidoAtual) {
+    throw new Error('PEDIDO_NAO_ENCONTRADO');
+  }
+
+  const statusAnterior = String(
+    pedidoAtual.get('status')
+  ).toLowerCase();
+
+  // Um pedido cancelado não pode ser reativado.
+  if (statusAnterior === 'cancelado' && novoStatus !== 'cancelado') {
+    throw new Error('PEDIDO_JA_CANCELADO');
+  }
+
+  // Não permitir cancelamento após pagamento ou envio.
+  if (
+    novoStatus === 'cancelado' &&
+    !['pendente', 'cancelado'].includes(statusAnterior)
+  ) {
+    throw new Error('CANCELAMENTO_NAO_PERMITIDO');
+  }
+
+  // Devolver o estoque apenas no primeiro cancelamento.
+  if (novoStatus === 'cancelado' && statusAnterior === 'pendente') {
+    const itens = await ItemPedidoModel.findAll({
+      where: { pedido_id: id },
+      transaction: transacao,
     });
+
+    for (const item of itens) {
+      const produto = await ProdutoModel.findByPk(item.produto_id, {
+        transaction: transacao,
+        lock: transacao.LOCK.UPDATE,
+      });
+
+      if (!produto) {
+        throw new Error('PRODUTO_NAO_ENCONTRADO');
+      }
+
+      const estoqueAtual = Number(produto.get('estoque'));
+
+      await produto.update(
+        { estoque: estoqueAtual + item.quantidade },
+        { transaction: transacao }
+      );
+    }
+  }
+
+  await pedidoAtual.update(
+    { status: novoStatus },
+    { transaction: transacao }
+  );
+
+  pedido.set('status', novoStatus);
+});
+
 
     return res.status(200).json({
       mensagem: 'Pedido atualizado com sucesso.',
       pedido,
     });
   } catch (erro) {
+    if (erro instanceof Error) {
+  const mensagens: Record<string, string> = {
+    PEDIDO_NAO_ENCONTRADO: 'Pedido não encontrado.',
+    PEDIDO_JA_CANCELADO: 'Um pedido cancelado não pode ser reativado.',
+    CANCELAMENTO_NAO_PERMITIDO: 'Este pedido não pode ser cancelado.',
+    PRODUTO_NAO_ENCONTRADO: 'Produto do pedido não encontrado.',
+  };
+
+  if (mensagens[erro.message]) {
+    return res.status(400).json({
+      mensagem: mensagens[erro.message],
+    });
+  }
+}
     console.error('Erro ao atualizar pedido:', erro);
 
     return res.status(500).json({
@@ -761,9 +1004,8 @@ app.put('/api/pedidos/:id', autenticarToken, async (req, res) => {
   }
 });
 
-app.delete('/api/pedidos/:id', autenticarToken, async (req, res) => {
+app.delete('/api/pedidos/:id', autenticarToken, autorizarAdmin, async (req, res) => {
   try {
-    const usuarioId = (req as typeof req & { usuarioId: number }).usuarioId;
     const id = Number(req.params.id);
 
     if (!Number.isInteger(id) || id <= 0) {
@@ -772,12 +1014,7 @@ app.delete('/api/pedidos/:id', autenticarToken, async (req, res) => {
       });
     }
 
-    const pedido = await PedidoModel.findOne({
-      where: {
-        id,
-        usuario_id: usuarioId,
-      },
-    });
+    const pedido = await PedidoModel.findByPk(id);
 
     if (!pedido) {
       return res.status(404).json({
@@ -785,7 +1022,63 @@ app.delete('/api/pedidos/:id', autenticarToken, async (req, res) => {
       });
     }
 
-    await pedido.destroy();
+const statusAtual = String(pedido.get('status')).toLowerCase();
+
+if (!['pendente', 'cancelado'].includes(statusAtual)) {
+  return res.status(400).json({
+    mensagem: 'Somente pedidos pendentes ou cancelados podem ser excluídos.',
+  });
+}
+
+await sequelize.transaction(async (transacao) => {
+  const pedidoAtual = await PedidoModel.findByPk(id, {
+    transaction: transacao,
+    lock: transacao.LOCK.UPDATE,
+  });
+
+  if (!pedidoAtual) {
+    throw new Error('PEDIDO_NAO_ENCONTRADO');
+  }
+
+  const statusConfirmado = String(
+    pedidoAtual.get('status')
+  ).toLowerCase();
+
+  if (!['pendente', 'cancelado'].includes(statusConfirmado)) {
+    throw new Error('STATUS_NAO_PERMITIDO');
+  }
+
+  const itens = await ItemPedidoModel.findAll({
+    where: { pedido_id: id },
+    transaction: transacao,
+  });
+
+  if (statusConfirmado === 'pendente') {
+    for (const item of itens) {
+      const produto = await ProdutoModel.findByPk(
+        item.produto_id,
+        {
+          transaction: transacao,
+          lock: transacao.LOCK.UPDATE,
+        }
+      );
+
+      if (!produto) {
+        throw new Error('PRODUTO_NAO_ENCONTRADO');
+      }
+
+      const estoqueAtual = Number(produto.get('estoque'));
+
+      await produto.update(
+        { estoque: estoqueAtual + item.quantidade },
+        { transaction: transacao }
+      );
+    }
+  }
+
+  await pedidoAtual.destroy({ transaction: transacao });
+});
+
 
     return res.status(200).json({
       mensagem: 'Pedido excluído com sucesso.',

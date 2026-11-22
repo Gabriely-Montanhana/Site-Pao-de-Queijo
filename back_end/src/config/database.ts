@@ -1,4 +1,5 @@
 import { Sequelize, DataTypes } from 'sequelize';
+import { inicializarItemPedido, ItemPedidoModel } from '../models/itensPedido';
 
 const sequelize = new Sequelize(
   process.env.DB_NAME ?? 'banepane',
@@ -18,6 +19,11 @@ export const UsuarioModel = sequelize.define('Usuario', {
   email: { type: DataTypes.STRING(160), allowNull: false, unique: true },
   cpf: { type: DataTypes.STRING(11), allowNull: false, unique: true },
   senha: { type: DataTypes.STRING(255), allowNull: false },
+  perfil: {
+  type: DataTypes.ENUM('cliente', 'admin'),
+  allowNull: false,
+  defaultValue: 'cliente',
+},
 }, { tableName: 'usuarios', timestamps: true });
 
 export const ProdutoModel = sequelize.define('Produto', {
@@ -138,4 +144,6 @@ export const EnderecoModel = sequelize.define('Endereco', {
   timestamps: true,
 });
 
-export { sequelize };
+inicializarItemPedido(sequelize);
+
+export { sequelize, ItemPedidoModel };

@@ -41,6 +41,7 @@ export function CarrinhoPage() {
         alterar(produtoId, quantidadeItem);
     }
 
+    
     return (
         <section className="carrinho">
             <div className="carrinho-miolo">
