@@ -15,6 +15,7 @@ import { Configuracoes } from './usuario/configuracoes.tsx'
 import { EnderecosLista } from './usuario/enderecosLista.tsx'
 import { EnderecoCadastro } from './usuario/enderecoCadastro.tsx'
 import { Dashboard } from './admin/pages/dashboard'
+import { AdminRota } from './admin/adminRota'
 import { ProdutosLista } from './admin/pages/listagem/produtosLista.tsx'
 import { ProdutoCadastro } from './admin/pages/cadastro/produtoCadastro.tsx'
 import { CategoriasLista } from './admin/pages/listagem/categoriasLista.tsx'
@@ -44,6 +45,8 @@ createRoot(document.getElementById('root')!).render(
             <Route path="/configuracoes/enderecos/novo" element={<EnderecoCadastro />} />
             <Route path="/configuracoes/enderecos/:id/editar" element={<EnderecoCadastro />} />
             <Route path="/configuracoes/enderecos" element={<EnderecosLista />} />
+            <Route element={<AdminRota />}>
+            <Route path="/admin/dashboard" element={<Dashboard />} />
             <Route path="/admin/dashboard" element={<Dashboard />} />
             <Route path="/admin/produtos/novo" element={<ProdutoCadastro />} />
             <Route path="/admin/produtos/:id/editar" element={<ProdutoCadastro />} />
@@ -54,7 +57,9 @@ createRoot(document.getElementById('root')!).render(
             <Route path="/admin/vendas/novo" element={<VendaCadastro />} />
             <Route path="/admin/vendas/:id/editar" element={<VendaCadastro />} />
             <Route path="/admin/vendas" element={<VendasLista />} />
+            </Route>
           </Routes>
+
         </main>
         <footer>
           <Footer />

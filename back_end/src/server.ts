@@ -138,6 +138,7 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
         nome: usuario.get('nome'),
         email: usuario.get('email'),
         cpf: usuario.get('cpf'),
+        perfil: usuario.get('perfil'),
       },
     });
   } catch (erro) {

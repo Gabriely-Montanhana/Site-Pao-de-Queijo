@@ -1,11 +1,14 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 
+
 export type Usuario = {
     id?: number;
     nome: string;
     email: string;
     cpf?: string;
+    perfil?: "admin" | "cliente";
 };
+
 
 type UsuarioValor = {
     usuario: Usuario | null;
