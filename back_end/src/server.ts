@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs';
 import { gerarToken, autenticarToken, autorizarAdmin } from './middleware/auth';
 import { Usuario } from './models/Usuario';
 import { Endereco } from './models/endereco';
+import { Produto } from './models/produtos';
 import { validarEmail, validarCpf, validarForcaSenha } from './utils/validacoes';
 import {
   sequelize,
@@ -263,19 +264,37 @@ app.post('/api/produtos', autenticarToken, autorizarAdmin, async (req: Request, 
       });
     }
 
-   const produto = await ProdutoModel.create({
-  nome: nome.trim(),
-  descricao: descricao.trim(),
+  const produtoDominio = new Produto(
+  nome,
+  descricao,
   preco,
   estoque,
-  categoria_id: categoriaId ?? null,
-});
+  categoriaId ?? null
+);
+
+const produto = await ProdutoModel.create(
+  produtoDominio.paraPersistencia()
+);
 
     return res.status(201).json({
       mensagem: 'Produto cadastrado com sucesso.',
       produto,
     });
-  } catch (erro) {
+   } catch (erro) {
+    if (
+      erro instanceof Error &&
+      (
+        erro.message.startsWith('O nome') ||
+        erro.message.startsWith('A descrição') ||
+        erro.message.startsWith('O preço') ||
+        erro.message.startsWith('O estoque')
+      )
+    ) {
+      return res.status(400).json({
+        mensagem: erro.message,
+      });
+    }
+
     console.error('Erro ao cadastrar produto:', erro);
 
     return res.status(500).json({
@@ -283,6 +302,7 @@ app.post('/api/produtos', autenticarToken, autorizarAdmin, async (req: Request, 
     });
   }
 });
+
 
 app.get('/api/produtos', autenticarToken, async (req, res) => {
   try {

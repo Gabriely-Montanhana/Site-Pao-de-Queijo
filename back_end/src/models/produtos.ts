@@ -21,13 +21,17 @@ export class Produto {
       throw new Error('A descrição é obrigatória.');
     }
 
-    if (preco < 0) {
-      throw new Error('O preço não pode ser negativo.');
-    }
+ if (typeof preco !== 'number' || !Number.isFinite(preco) || preco < 0) {
+  throw new Error('O preço deve ser um número válido e não negativo.');
+}
 
-    if (estoque < 0) {
-      throw new Error('O estoque não pode ser negativo.');
-    }
+if (
+  typeof estoque !== 'number' ||
+  !Number.isInteger(estoque) ||
+  estoque < 0
+) {
+  throw new Error('O estoque deve ser um número inteiro não negativo.');
+}
 
     this._nome = nome.trim();
     this._descricao = descricao.trim();
@@ -64,25 +68,33 @@ export class Produto {
     return this._preco;
   }
 
-  set preco(novoPreco: number) {
-    if (novoPreco < 0) {
-      throw new Error('O preço não pode ser negativo.');
-    }
-
-    this._preco = novoPreco;
+ set preco(novoPreco: number) {
+  if (
+    typeof novoPreco !== 'number' ||
+    !Number.isFinite(novoPreco) ||
+    novoPreco < 0
+  ) {
+    throw new Error('O preço deve ser um número válido e não negativo.');
   }
+
+  this._preco = novoPreco;
+}
 
   get estoque(): number {
     return this._estoque;
   }
 
   set estoque(novoEstoque: number) {
-    if (novoEstoque < 0) {
-      throw new Error('O estoque não pode ser negativo.');
-    }
-
-    this._estoque = novoEstoque;
+  if (
+    typeof novoEstoque !== 'number' ||
+    !Number.isInteger(novoEstoque) ||
+    novoEstoque < 0
+  ) {
+    throw new Error('O estoque deve ser um número inteiro não negativo.');
   }
+
+  this._estoque = novoEstoque;
+}
 
   get categoriaId(): number | null {
     return this._categoriaId;
