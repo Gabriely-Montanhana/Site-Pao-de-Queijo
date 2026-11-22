@@ -25,7 +25,7 @@ export function Header() {
                     <div className="navbar-nav ms-auto">
                         <Link className="nav-link" to="/">Home</Link>
                         <Link className="nav-link" to="/produtos">Produtos</Link>
-                        {logado && <Link className="nav-link" to="/admin/dashboard">Admin</Link>}
+                        {usuario?.perfil === "admin" && <Link className="nav-link" to="/admin/dashboard">Admin</Link>}
                         <Link className="nav-link" to="/carrinho">
                             <img src="/img/logoCarrinho.svg" alt="Carrinho" width="17" height="17"></img>
                         </Link>
