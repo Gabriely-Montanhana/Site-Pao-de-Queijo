@@ -5,6 +5,9 @@ import bcrypt from 'bcryptjs';
 import { gerarToken, autenticarToken, autorizarAdmin } from './middleware/auth';
 import { Usuario } from './models/Usuario';
 import { Endereco } from './models/endereco';
+import { ProdutoComercializavel } from './domain/ProdutoBase';
+import { PaoDeQueijoCongelado } from './domain/PaoDeQueijoCongelado';
+import { KitPaoDeQueijo } from './domain/KitPaoDeQueijo';
 import { Produto } from './models/produtos';
 import { validarEmail, validarCpf, validarForcaSenha } from './utils/validacoes';
 import {
@@ -241,6 +244,32 @@ app.put('/api/usuarios/me', autenticarToken, async (req: Request, res: Response)
       mensagem: 'Erro interno ao atualizar usuário.',
     });
   }
+});
+
+// Demonstração de herança e polimorfismo - Tech Forge
+app.get('/api/techforge/produtos', autenticarToken, (req: Request, res: Response) => {
+  const produtos: ProdutoComercializavel[] = [
+    new PaoDeQueijoCongelado(
+      'Pão de Queijo Tradicional',
+      25.90,
+      'Tradicional'
+    ),
+    new KitPaoDeQueijo(
+      'Kit Família',
+      90.00,
+      3
+    )
+  ];
+
+  const resultado = produtos.map((produto) => ({
+    descricao: produto.obterDescricao(),
+    precoFinal: produto.calcularPrecoFinal()
+  }));
+
+  return res.status(200).json({
+    mensagem: 'Demonstração de polimorfismo - Tech Forge',
+    produtos: resultado
+  });
 });
 
 app.post('/api/produtos', autenticarToken, autorizarAdmin, async (req: Request, res: Response) => {
