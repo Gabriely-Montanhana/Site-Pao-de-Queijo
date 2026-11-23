@@ -10,6 +10,7 @@ type CategoriaApi = {
     nome: string;
 };
 
+// Tela separada da lista: cria ou edita um produto e valida os campos antes de gravar.
 const vazio: ProdutoForm = {
     nome: "",
     descricao: "",

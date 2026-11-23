@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import App from './App.tsx'
 import { CarrinhoProvider } from './components/carrinho'
 import { UsuarioProvider } from './usuario/contextoUsuario.tsx'
+// Pastas separadas: components são peças reutilizáveis, pages são telas e admin/pages são os CRUDs.
 import { Header } from './components/header'
 import { Footer } from './components/footer'
 import { CadastroPage } from './pages/cadastro'
@@ -28,6 +29,7 @@ import './css/admin.css'
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
+      {/* Contexto: o usuário logado fica disponível no cabeçalho e nas telas da conta. */}
       <UsuarioProvider>
       <CarrinhoProvider>
         <header>
@@ -42,12 +44,14 @@ createRoot(document.getElementById('root')!).render(
             <Route path="/cadastro" element={<CadastroPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/configuracoes" element={<Configuracoes />} />
+            {/* Endereços: a lista e o formulário de criar ou editar são telas diferentes. */}
             <Route path="/configuracoes/enderecos/novo" element={<EnderecoCadastro />} />
             <Route path="/configuracoes/enderecos/:id/editar" element={<EnderecoCadastro />} />
             <Route path="/configuracoes/enderecos" element={<EnderecosLista />} />
             <Route element={<AdminRota />}>
             <Route path="/admin/dashboard" element={<Dashboard />} />
             <Route path="/admin/dashboard" element={<Dashboard />} />
+            {/* Produtos, categorias e vendas: listagem numa rota, cadastro e edição em outra. */}
             <Route path="/admin/produtos/novo" element={<ProdutoCadastro />} />
             <Route path="/admin/produtos/:id/editar" element={<ProdutoCadastro />} />
             <Route path="/admin/produtos" element={<ProdutosLista />} />

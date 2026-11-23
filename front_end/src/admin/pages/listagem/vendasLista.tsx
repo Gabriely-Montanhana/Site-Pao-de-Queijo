@@ -5,6 +5,7 @@ import { lerDetalhePedido } from "../../../detalhesPedido";
 import { mascaraCpf } from "../../../validacao";
 import { AdminLayout } from "../../componets/adminLayour";
 
+// CRUD de vendas. A lista fica nesta tela e mostra cinco itens por página.
 const LIMITE = 5;
 
 const STATUS: Record<string, string> = {
@@ -95,6 +96,7 @@ function textoEndereco(endereco: EnderecoApi) {
     return `${endereco.rua}, ${endereco.numero} — ${endereco.bairro}, ${endereco.cidade}/${endereco.estado} — CEP ${formatarCep(endereco.cep)}`;
 }
 
+// Função exclusiva desta listagem.
 function LinhaVenda({
     pedido,
     onVer,
@@ -312,6 +314,7 @@ export function VendasLista() {
                         </tbody>
                     </table>
                     {visiveis.length === 0 && !erro && <p>Nenhuma venda encontrada.</p>}
+                    {/* Paginação da listagem de vendas. */}
                     <div className="admin-paginas">
                         <button type="button" disabled={paginaAtual <= 1} onClick={() => setPagina(paginaAtual - 1)}>Anterior</button>
                         <span>Página {paginaAtual} de {totalPaginas}</span>

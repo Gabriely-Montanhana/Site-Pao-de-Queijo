@@ -29,21 +29,26 @@ app.get('/', (_req: Request, res: Response) => {
   res.json({ mensagem: 'API Banepane Foods funcionando!' });
 });
 
+// Rúbrica: cadastro com nome, email, senha e CPF.
 app.post('/api/auth/cadastro', async (req: Request, res: Response) => {
   try {
     const { nome, email, senha, cpf } = req.body as {
       nome?: string; email?: string; senha?: string; cpf?: string;
     };
 
+    // Os quatro campos são obrigatórios.
     if (!nome?.trim() || !email?.trim() || !senha || !cpf?.trim()) {
       return res.status(400).json({ mensagem: 'Preencha nome, email, senha e CPF.' });
     }
+    // Validação de e-mail por regex.
     if (!validarEmail(email)) {
       return res.status(400).json({ mensagem: 'Informe um email válido.' });
     }
+    // Validação dos dígitos do CPF.
     if (!validarCpf(cpf)) {
       return res.status(400).json({ mensagem: 'Informe um CPF válido.' });
     }
+    // Validação do nível da senha: tamanho, maiúscula, minúscula, número e símbolo.
     const erroSenha = validarForcaSenha(senha);
     if (erroSenha) {
       return res.status(400).json({ mensagem: erroSenha });
@@ -62,6 +67,7 @@ app.post('/api/auth/cadastro', async (req: Request, res: Response) => {
       return res.status(409).json({ mensagem: 'Este CPF já está cadastrado.' });
     }
 
+    // A senha é gravada criptografada. O banco recebe o hash, não o texto original.
     const senhaHash = await bcrypt.hash(senha, 12);
     const usuario = new Usuario(nome.trim(), emailNormalizado, cpfNumeros, senhaHash);
     const salvo = await UsuarioModel.create(usuario.paraPersistencia());
@@ -85,6 +91,7 @@ app.post('/api/auth/cadastro', async (req: Request, res: Response) => {
   }
 });
 
+// Rúbrica: login com e-mail e senha.
 app.post('/api/auth/login', async (req: Request, res: Response) => {
   try {
     const { email, senha } = req.body as {
@@ -98,6 +105,7 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
       });
     }
 
+    // Validação de e-mail por regex, também no login.
     if (!validarEmail(email)) {
       return res.status(400).json({
         mensagem: 'Informe um email válido.',
@@ -112,12 +120,14 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
       },
     });
 
+    // Só entra quem já está cadastrado.
     if (!usuario) {
       return res.status(401).json({
         mensagem: 'Email ou senha incorretos.',
       });
     }
 
+    // Compara a senha digitada com o hash salvo no banco.
     const senhaCorreta = await bcrypt.compare(
       senha,
       usuario.get('senha') as string,
@@ -129,6 +139,7 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
       });
     }
 
+    // Retorno do JWT para o front guardar e enviar nas próximas requisições.
     const token = gerarToken({
       id: usuario.get('id') as number,
       email: usuario.get('email') as string,
@@ -154,6 +165,7 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
   }
 });
 
+// Rúbrica: edição autenticada. O id vem do token, então a pessoa só altera a própria conta.
 app.put('/api/usuarios/me', autenticarToken, async (req: Request, res: Response) => {
   try {
     const usuarioId = (req as Request & { usuarioId: number }).usuarioId;
@@ -165,12 +177,14 @@ app.put('/api/usuarios/me', autenticarToken, async (req: Request, res: Response)
       cpf?: string;
     };
 
+    // Na edição, nome, email, senha e CPF continuam obrigatórios.
     if (!nome?.trim() || !email?.trim() || !senha || !cpf?.trim()) {
       return res.status(400).json({
         mensagem: 'Preencha nome, email, senha e CPF.',
       });
     }
 
+    // CPF e nível da senha são validados de novo antes de gravar.
     if (!validarCpf(cpf)) {
       return res.status(400).json({
         mensagem: 'Informe um CPF válido.',
@@ -196,6 +210,7 @@ app.put('/api/usuarios/me', autenticarToken, async (req: Request, res: Response)
     const emailAtual = usuario.get('email') as string;
     const emailInformado = email.trim().toLowerCase();
 
+    // O e-mail não pode ser trocado.
     if (emailInformado !== emailAtual) {
       return res.status(400).json({
         mensagem: 'O email não pode ser alterado.',
@@ -219,6 +234,7 @@ app.put('/api/usuarios/me', autenticarToken, async (req: Request, res: Response)
       });
     }
 
+    // A nova senha também é gravada criptografada.
     const senhaHash = await bcrypt.hash(senha, 12);
 
     await usuario.update({
@@ -272,6 +288,7 @@ app.get('/api/techforge/produtos', autenticarToken, (req: Request, res: Response
   });
 });
 
+// CRUD de produtos. autenticarToken exige login em criar, listar, editar e apagar.
 app.post('/api/produtos', autenticarToken, autorizarAdmin, async (req: Request, res: Response) => {
   try {
     const { nome, descricao, preco, estoque, categoriaId } = req.body as {
@@ -333,6 +350,7 @@ const produto = await ProdutoModel.create(
 });
 
 
+// Paginação da listagem: pagina e limite vêm da URL.
 app.get('/api/produtos', autenticarToken, async (req, res) => {
   try {
     const pagina = Number(req.query.pagina ?? 1);
@@ -408,6 +426,7 @@ app.put('/api/produtos/:id', autenticarToken,autorizarAdmin, async (req: Request
 
     const produto = await ProdutoModel.findByPk(id);
 
+    // Não edita recurso que não existe.
     if (!produto) {
       return res.status(404).json({
         mensagem: 'Produto não encontrado.',
@@ -419,6 +438,7 @@ app.put('/api/produtos/:id', autenticarToken,autorizarAdmin, async (req: Request
       descricao: descricao.trim(),
       preco,
       estoque,
+      // Relacionamento: o produto aponta para uma categoria.
       categoria_id: categoriaId ?? null,
     });
 
@@ -447,6 +467,7 @@ app.delete('/api/produtos/:id', autenticarToken,autorizarAdmin, async (req: Requ
 
     const produto = await ProdutoModel.findByPk(id);
 
+    // Não apaga recurso que não existe. O mesmo 404 vale para categoria, pedido e endereço.
     if (!produto) {
       return res.status(404).json({
         mensagem: 'Produto não encontrado.',
@@ -467,6 +488,7 @@ app.delete('/api/produtos/:id', autenticarToken,autorizarAdmin, async (req: Requ
   }
 });
 
+// CRUD de categorias. A listagem também usa pagina e limite, como a de produtos.
 app.post('/api/categorias', autenticarToken, autorizarAdmin, async (req: Request, res: Response) => {
   try {
     const { nome } = req.body as {
@@ -630,6 +652,7 @@ app.delete('/api/categorias/:id', autenticarToken,autorizarAdmin, async (req: Re
       });
     }
 
+    // Relacionamento: categoria com produtos não pode ser apagada.
     const quantidadeProdutos = await ProdutoModel.count({
       where: {
         categoria_id: id,
@@ -657,6 +680,7 @@ app.delete('/api/categorias/:id', autenticarToken,autorizarAdmin, async (req: Re
 });
 
 
+// CRUD de pedidos. A rota exige login e o pedido fica ligado ao usuário do token.
 app.post('/api/pedidos', autenticarToken, async (req, res) => {
   try {
     const usuarioId = (req as typeof req & { usuarioId: number }).usuarioId;
@@ -871,6 +895,7 @@ const pedidosComCliente = await Promise.all(
   }
 });
 
+// Listagem do próprio usuário, também paginada por pagina e limite.
 app.get('/api/pedidos', autenticarToken, async (req, res) => {
   try {
     const usuarioId = (req as typeof req & { usuarioId: number }).usuarioId;
@@ -1142,6 +1167,7 @@ await sequelize.transaction(async (transacao) => {
   }
 });
 
+// CRUD de endereços. Cada endereço pertence ao usuário logado.
 app.post('/api/enderecos', autenticarToken, async (req, res) => {
   try {
     const usuarioId = (req as typeof req & { usuarioId: number }).usuarioId;
@@ -1261,6 +1287,7 @@ app.put('/api/enderecos/:id', autenticarToken, async (req, res) => {
       });
     }
 
+    // Só encontra o endereço se o id for deste usuário. Caso contrário, não edita.
     const enderecoExistente = await EnderecoModel.findOne({
       where: {
         id,

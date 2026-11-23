@@ -17,6 +17,7 @@ type UsuarioValor = {
     sair: () => void;
 };
 
+// Rúbrica: o usuário logado fica disponível em qualquer tela.
 const UsuarioContexto = createContext<UsuarioValor | null>(null);
 
 function lerUsuario(): Usuario | null {
@@ -35,6 +36,7 @@ export function UsuarioProvider({ children }: { children: ReactNode }) {
     const [usuario, setUsuario] = useState<Usuario | null>(lerUsuario);
 
     const entrar = useCallback((token: string, proximo: Usuario) => {
+        // O JWT fica no navegador e continua valendo ao recarregar a página.
         localStorage.setItem("token", token);
         localStorage.setItem("usuario", JSON.stringify(proximo));
         setUsuario(proximo);

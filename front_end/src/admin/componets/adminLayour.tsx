@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 
+// Menu reutilizado nas telas de produtos, categorias e vendas.
 export function AdminLayout() {
     return (
         <aside className="admin-menu">

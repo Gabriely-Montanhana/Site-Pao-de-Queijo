@@ -548,6 +548,12 @@ main:has(.login-form) {
     align-items: flex-start;
 }
 
+.cadastro-envolve {
+    width: min(640px, calc(100% - 32px));
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
 .cadastro-form,
 .login-form {
     width: min(640px, calc(100% - 32px));
@@ -555,6 +561,11 @@ main:has(.login-form) {
     margin-bottom: auto;
     background-color: var(--fundoCard);
     border-color: #e4d0b4;
+}
+
+.cadastro-envolve .cadastro-form {
+    width: 100%;
+    margin: 0;
 }
 
 .cadastro-form .campo-erro,

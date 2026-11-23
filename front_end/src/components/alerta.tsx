@@ -5,6 +5,7 @@ type AlertaProps = {
     children : ReactNode;
 };
 
+// Aviso genérico, reutilizado para mostrar sucesso ou erro.
 export function Alerta({tipo, children} : AlertaProps) {
     return (
         <div className={`aviso-pagina ${tipo}`} role="status">

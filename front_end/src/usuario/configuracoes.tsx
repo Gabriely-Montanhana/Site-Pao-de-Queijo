@@ -33,6 +33,7 @@ function formatarData(valor?: string) {
     return data.toLocaleDateString("pt-BR");
 }
 
+// Função exclusiva desta página: a lista de pedidos não é um componente compartilhado.
 function PedidosFeitos() {
     const [pedidos, setPedidos] = useState<PedidoApi[]>([]);
     const [erro, setErro] = useState("");
@@ -103,6 +104,7 @@ function formularioDoUsuario(usuario: Usuario | null): CadastroForm {
     };
 }
 
+// Rúbrica: esta tela lê o usuário pelo contexto e só altera a própria conta.
 export function Configuracoes() {
     const navigate = useNavigate();
     const { usuario, atualizar } = useUsuario();
@@ -223,6 +225,7 @@ export function Configuracoes() {
                                     erro={erros.nome}
                                     onChange={(nome) => setForm({ ...form, nome })}
                                 />
+                                {/* O e-mail fica bloqueado: a rubrica não permite trocá-lo. */}
                                 <Campo
                                     id="config-email"
                                     label="E-mail"
@@ -246,6 +249,7 @@ export function Configuracoes() {
                                 <p className="ml-nota">O CPF não pode ser alterado.</p>
                             </div>
                             <div className="ml-card">
+                                {/* A senha confirma que a pessoa pode salvar a alteração. */}
                                 <h2>Confirmar senha</h2>
                                 <p className="ml-nota">A senha não muda. Ela só confirma que você pode salvar os dados.</p>
                                 <Campo

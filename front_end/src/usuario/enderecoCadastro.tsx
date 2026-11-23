@@ -8,6 +8,7 @@ import { useUsuario } from "./contextoUsuario";
 
 type EnderecoApi = EnderecoForm & { id: number };
 
+// Tela separada da lista: cria ou edita um endereço e valida os campos antes de gravar.
 const VAZIO: EnderecoForm = {
     rua: "",
     numero: "",

@@ -1,3 +1,4 @@
+// Rúbrica: componente genérico, reutilizado nos formulários de login, cadastro e CRUDs.
 //// Campo reutilizável do formulário: mostra o rótulo, guarda o valor digitado e exibe a mensagem de erro embaixo do input quando a validação falha.
 type CampoProps = {
   id: string;

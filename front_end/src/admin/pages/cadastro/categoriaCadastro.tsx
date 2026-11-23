@@ -10,6 +10,7 @@ type CategoriaApi = {
     nome: string;
 };
 
+// Tela separada da lista: cria ou edita uma categoria e exige o nome.
 export function CategoriaCadastro() {
     const navigate = useNavigate();
     const { id } = useParams();

@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { api, mensagemDaApi } from "../../../api/axios";
 import { AdminLayout } from "../../componets/adminLayour";
 
+// CRUD de produtos. A lista fica nesta tela e mostra cinco itens por página.
 const LIMITE = 5;
 
 type ProdutoApi = {
@@ -27,6 +28,7 @@ function textoPesquisa(valor: string) {
     return valor.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 }
 
+// Função exclusiva desta listagem.
 function LinhaProduto({
     produto,
     categoria,
@@ -158,6 +160,7 @@ export function ProdutosLista() {
                         </tbody>
                     </table>
                     {visiveis.length === 0 && !erro && <p>Nenhum produto encontrado.</p>}
+                    {/* Paginação da listagem de produtos. */}
                     <div className="admin-paginas">
                         <button type="button" disabled={paginaAtual <= 1} onClick={() => setPagina(paginaAtual - 1)}>Anterior</button>
                         <span>Página {paginaAtual} de {totalPaginas}</span>

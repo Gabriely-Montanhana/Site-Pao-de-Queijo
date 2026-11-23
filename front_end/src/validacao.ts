@@ -1,3 +1,4 @@
+// Rúbrica: validação de e-mail por regex, no login e no cadastro.
 const EMAIL = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;// Expressão regular para validar emails, verifica se o email tem o formato correto (ex: email@dominio.com)
 
 export function emailValido(valor: string) {
@@ -13,6 +14,7 @@ export function mascaraCpf(valor: string) {
         .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
 }
 
+// Rúbrica: validação dos dígitos do CPF.
 export function cpfValido(valor: string) {
     const cpf = valor.replace(/\D/g, ''); // Remove tudo que não é dígito, '\D' é o mesmo que [^0-9], '/g' troca as ocorrencias
 
@@ -44,6 +46,7 @@ export type ErrosLogin = {
     senha?: string;
 }
 
+// Rúbrica: o login exige e-mail, no formato certo, e senha.
 export function validarLogin(form: LoginForm): ErrosLogin {
     const erros: ErrosLogin = {};
 
@@ -81,11 +84,13 @@ export function validarCadastro(form: CadastroForm): ErrosCadastro {
     if (!form.email.trim()) erros.email = "E-mail é obrigatório.";
     else if (!emailValido(form.email)) erros.email = "E-mail inválido.";
 
+    // Nível da senha: tamanho, maiúscula, minúscula, número e símbolo.
     if (!form.senha) erros.senha = "Senha é obrigatória.";
     else if (form.senha.length < 8 || !/[A-Z]/.test(form.senha) || !/[a-z]/.test(form.senha) || !/\d/.test(form.senha) || !/[^A-Za-z0-9]/.test(form.senha)) {
         erros.senha = "Use 8 caracteres, maiúscula, minúscula, número e símbolo.";
     }
 
+    // As duas senhas precisam ser iguais.
     if (!form.confirmacao) erros.confirmacao = "Confirme a senha.";
     else if (form.senha !== form.confirmacao) erros.confirmacao = "A confirmação da senha não confere.";
 
@@ -95,6 +100,7 @@ export function validarCadastro(form: CadastroForm): ErrosCadastro {
     return erros;
 }
 
+// Rúbrica: na edição o e-mail não muda e a senha precisa ser confirmada para salvar.
 export function validarEdicaoUsuario(form: CadastroForm, emailOriginal: string, cpfOriginal: string): ErrosCadastro {
     const erros: ErrosCadastro = {};
 
@@ -129,6 +135,7 @@ export type ErrosProduto = {
     categoriaId?: string;
 }
 
+// Campos obrigatórios do CRUD de produtos.
 export function validarProduto(form: ProdutoForm): ErrosProduto {
     const erros: ErrosProduto = {};
 
@@ -149,6 +156,7 @@ export function validarProduto(form: ProdutoForm): ErrosProduto {
     return erros;
 }
 
+// Campo obrigatório do CRUD de categorias.
 export function validarCategoria(nome: string) {
     if (!nome.trim()) return "O nome é obrigatório.";
     return "";
@@ -177,6 +185,7 @@ export function mascaraCep(valor: string) {
     return digitos.replace(/(\d{5})(\d)/, "$1-$2");
 }
 
+// Campos obrigatórios do CRUD de endereços.
 export function validarEndereco(form: EnderecoForm): ErrosEndereco {
     const erros: ErrosEndereco = {};
 

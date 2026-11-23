@@ -5,6 +5,7 @@ import { Campo } from "../../../components/campo";
 import { AdminLayout } from "../../componets/adminLayour";
 import { type VendaForm } from "../../../validacao";
 
+// Tela separada da lista: cria ou edita uma venda.
 const STATUS = [
     { valor: "pendente", rotulo: "Pendente" },
     { valor: "pago", rotulo: "Pago" },

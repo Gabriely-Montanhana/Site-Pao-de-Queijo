@@ -1,3 +1,4 @@
+// Componente reutilizado no rodapé de todas as telas.
 export function Footer() {
     return (
         <footer className="text-center p-4">

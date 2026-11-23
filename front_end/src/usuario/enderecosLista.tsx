@@ -5,6 +5,7 @@ import { mascaraCep } from "../validacao";
 import { ContaMenu } from "./contaMenu";
 import { useUsuario } from "./contextoUsuario";
 
+// CRUD de endereços. A lista fica nesta tela e pede uma página por vez para a API.
 const LIMITE = 5;
 
 type EnderecoApi = {
@@ -22,6 +23,7 @@ type ListaEnderecos = {
     paginacao?: { totalPaginas: number; total: number };
 };
 
+// Função exclusiva desta listagem.
 function LinhaEndereco({
     endereco,
     onExcluir,
@@ -123,6 +125,7 @@ export function EnderecosLista() {
                         {!carregando && enderecos.map((endereco) => (
                             <LinhaEndereco key={endereco.id} endereco={endereco} onExcluir={setExcluir} />
                         ))}
+                        {/* Paginação da listagem de endereços. */}
                         {!carregando && enderecos.length > 0 && (
                             <div className="ml-paginas">
                                 <button type="button" disabled={pagina <= 1} onClick={() => setPagina(pagina - 1)}>Anterior</button>

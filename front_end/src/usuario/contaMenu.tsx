@@ -3,6 +3,7 @@ import { useUsuario } from "./contextoUsuario";
 
 type AbaConta = "dados" | "enderecos" | "pedidos";
 
+// Mostra o nome e o e-mail que estão no contexto, em todas as telas da conta.
 export function ContaMenu({ ativo }: { ativo: AbaConta }) {
     const { usuario } = useUsuario();
     const inicial = (usuario?.nome || "U").trim().charAt(0).toUpperCase();
