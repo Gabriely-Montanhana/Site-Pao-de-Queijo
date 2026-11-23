@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { Alerta } from "./alerta";
 
 export type ItemCarrinho = {
     produtoId: number;
@@ -18,6 +19,7 @@ type CarrinhoValor = {
     adicionar: (item: Entrada) => void;
     alterar: (produtoId: number, quantidade: number) => void;
     remover: (produtoId: number) => void;
+    repor: (item: ItemCarrinho, indice: number) => void;
     limpar: () => void;
 };
 
@@ -36,21 +38,31 @@ function lerGuardado(): ItemCarrinho[] {//lê o carrinho que ficou salvo no nave
 
 export function CarrinhoProvider({ children }: { children: ReactNode }) {
     const [itens, setItens] = useState<ItemCarrinho[]>(lerGuardado);
+    const [aviso, setAviso] = useState<{ id: number; texto: string } | null>(null);
 
     useEffect(() => {
         localStorage.setItem(CHAVE, JSON.stringify(itens));
     }, [itens]);
 
+    useEffect(() => {
+        if (!aviso) return;
+        const tempo = setTimeout(() => setAviso(null), 3200);
+        return () => clearTimeout(tempo);
+    }, [aviso]);
+
     function adicionar(item: Entrada) {
         if (item.estoque <= 0) return;
+        const existe = itens.find((linha) => linha.produtoId === item.produtoId);
+        if (existe && existe.quantidade >= item.estoque) return;
         setItens((atual) => {
-            const existe = atual.find((linha) => linha.produtoId === item.produtoId);
-            if (!existe) return [...atual, { ...item, quantidade: 1 }];
-            if (existe.quantidade >= item.estoque) return atual;
+            const linhaAtual = atual.find((linha) => linha.produtoId === item.produtoId);
+            if (!linhaAtual) return [...atual, { ...item, quantidade: 1 }];
+            if (linhaAtual.quantidade >= item.estoque) return atual;
             return atual.map((linha) => linha.produtoId === item.produtoId
-                ? { ...linha, quantidade: linha.quantidade + 1, estoque: item.estoque, preco: item.preco }
+                ? { ...linha, quantidade: linha.quantidade + 1, estoque: item.estoque, preco: item.preco, nome: item.nome }
                 : linha);
         });
+        setAviso({ id: Date.now(), texto: `${item.nome} foi adicionado ao carrinho.` });
     }
 
     function alterar(produtoId: number, quantidade: number) {
@@ -65,6 +77,15 @@ export function CarrinhoProvider({ children }: { children: ReactNode }) {
         setItens((atual) => atual.filter((linha) => linha.produtoId !== produtoId));
     }
 
+    function repor(item: ItemCarrinho, indice: number) {
+        setItens((atual) => {
+            if (atual.some((linha) => linha.produtoId === item.produtoId)) return atual;
+            const proximo = [...atual];
+            proximo.splice(Math.min(indice, proximo.length), 0, item);
+            return proximo;
+        });
+    }
+
     function limpar() {
         setItens([]);
     }
@@ -73,8 +94,9 @@ export function CarrinhoProvider({ children }: { children: ReactNode }) {
     const total = itens.reduce((soma, linha) => soma + linha.preco * linha.quantidade, 0);
 
     return (
-        <CarrinhoContexto.Provider value={{ itens, quantidade, total, adicionar, alterar, remover, limpar }}>
+        <CarrinhoContexto.Provider value={{ itens, quantidade, total, adicionar, alterar, remover, repor, limpar }}>
             {children}
+            {aviso && <Alerta tipo="success">{aviso.texto}</Alerta>}
         </CarrinhoContexto.Provider>
     );
 }

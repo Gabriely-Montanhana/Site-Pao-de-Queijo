@@ -1,9 +1,10 @@
-import { useState, type SubmitEvent } from "react";
+import { useEffect, useState, type SubmitEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api, mensagemDaApi } from "../api/axios";
 import { Campo } from "../components/campo";
 import { mascaraCpf, validarCadastro, type CadastroForm, type ErrosCadastro } from "../validacao";
 
+// Rúbrica: nome, e-mail, senha, confirmação da senha e CPF. O sucesso volta para o login.
 export function CadastroPage() {
     const navigate = useNavigate();
     const [form, setForm] = useState<CadastroForm>({
@@ -16,6 +17,14 @@ export function CadastroPage() {
     const [erros, setErros] = useState<ErrosCadastro>({});
     const [erroApi, setErroApi] = useState("");
     const [loading, setLoading] = useState(false);
+    const [cadastrado, setCadastrado] = useState(false);
+
+    useEffect(() => {
+        if (!cadastrado) return;
+        // Depois do cadastro, segue para a tela de login.
+        const tempo = setTimeout(() => navigate("/login"), 4000);
+        return () => clearTimeout(tempo);
+    }, [cadastrado, navigate]);
 
     async function onFormSubmit(event: SubmitEvent) {
         event.preventDefault();
@@ -32,8 +41,9 @@ export function CadastroPage() {
                 senha: form.senha,
                 cpf: form.cpf.replace(/\D/g, ""),
             });
-            navigate("/login");
+            setCadastrado(true);
         } catch (falha) {
+            // A frase de erro vem da API e aparece no formulário.
             setErroApi(mensagemDaApi(falha, "Não foi possível cadastrar."));
         } finally {
             setLoading(false);
@@ -41,6 +51,7 @@ export function CadastroPage() {
     }
 
     return (
+        <div className="cadastro-envolve">
         <form onSubmit={onFormSubmit} className="cadastro-form card rounded-4 p-4 p-md-5" noValidate>
             <h2 className="fw-bold mb-4 text-center">Cadastro</h2>
             {erroApi && <p className="field-error">{erroApi}</p>}
@@ -104,5 +115,14 @@ export function CadastroPage() {
                 }
             </div>
         </form>
+        {cadastrado && (
+            <div className="admin-confirma" role="status" aria-live="polite">
+                <article>
+                    <h2>Usuário cadastrado</h2>
+                    <p>Usuário cadastrado com sucesso.</p>
+                </article>
+            </div>
+        )}
+        </div>
     )
 }

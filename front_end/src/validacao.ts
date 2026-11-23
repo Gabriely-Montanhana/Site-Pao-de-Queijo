@@ -1,3 +1,4 @@
+// Rúbrica: validação de e-mail por regex, no login e no cadastro.
 const EMAIL = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;// Expressão regular para validar emails, verifica se o email tem o formato correto (ex: email@dominio.com)
 
 export function emailValido(valor: string) {
@@ -13,6 +14,7 @@ export function mascaraCpf(valor: string) {
         .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
 }
 
+// Rúbrica: validação dos dígitos do CPF.
 export function cpfValido(valor: string) {
     const cpf = valor.replace(/\D/g, ''); // Remove tudo que não é dígito, '\D' é o mesmo que [^0-9], '/g' troca as ocorrencias
 
@@ -44,6 +46,7 @@ export type ErrosLogin = {
     senha?: string;
 }
 
+// Rúbrica: o login exige e-mail, no formato certo, e senha.
 export function validarLogin(form: LoginForm): ErrosLogin {
     const erros: ErrosLogin = {};
 
@@ -81,16 +84,145 @@ export function validarCadastro(form: CadastroForm): ErrosCadastro {
     if (!form.email.trim()) erros.email = "E-mail é obrigatório.";
     else if (!emailValido(form.email)) erros.email = "E-mail inválido.";
 
+    // Nível da senha: tamanho, maiúscula, minúscula, número e símbolo.
     if (!form.senha) erros.senha = "Senha é obrigatória.";
     else if (form.senha.length < 8 || !/[A-Z]/.test(form.senha) || !/[a-z]/.test(form.senha) || !/\d/.test(form.senha) || !/[^A-Za-z0-9]/.test(form.senha)) {
         erros.senha = "Use 8 caracteres, maiúscula, minúscula, número e símbolo.";
     }
 
+    // As duas senhas precisam ser iguais.
     if (!form.confirmacao) erros.confirmacao = "Confirme a senha.";
     else if (form.senha !== form.confirmacao) erros.confirmacao = "A confirmação da senha não confere.";
 
     if (!form.cpf.trim()) erros.cpf = "CPF é obrigatório.";
     else if (!cpfValido(form.cpf)) erros.cpf = "CPF inválido.";
+
+    return erros;
+}
+
+// Rúbrica: na edição o e-mail não muda e a senha precisa ser confirmada para salvar.
+export function validarEdicaoUsuario(form: CadastroForm, emailOriginal: string, cpfOriginal: string): ErrosCadastro {
+    const erros: ErrosCadastro = {};
+
+    if (!form.nome.trim()) erros.nome = "Nome é obrigatório.";
+
+    if (form.email.trim().toLowerCase() !== emailOriginal.trim().toLowerCase()) {
+        erros.email = "O e-mail não pode ser alterado.";
+    }
+
+    if (form.cpf.replace(/\D/g, "") !== cpfOriginal.replace(/\D/g, "")) {
+        erros.cpf = "O CPF não pode ser alterado.";
+    }
+
+    if (!form.senha) erros.senha = "Confirme sua senha para salvar.";
+
+    return erros;
+}
+
+export type ProdutoForm = {
+    nome: string;
+    descricao: string;
+    preco: string;
+    estoque: string;
+    categoriaId: string;
+}
+
+export type ErrosProduto = {
+    nome?: string;
+    descricao?: string;
+    preco?: string;
+    estoque?: string;
+    categoriaId?: string;
+}
+
+// Campos obrigatórios do CRUD de produtos.
+export function validarProduto(form: ProdutoForm): ErrosProduto {
+    const erros: ErrosProduto = {};
+
+    if (!form.nome.trim()) erros.nome = "O nome é obrigatório.";
+    if (!form.descricao.trim()) erros.descricao = "A descrição é obrigatória.";
+
+    if (!form.preco.trim()) erros.preco = "O preço é obrigatório.";
+    else {
+        const preco = Number(form.preco.replace(",", "."));
+        if (!Number.isFinite(preco) || preco < 0) erros.preco = "Informe um preço válido.";
+    }
+
+    if (!form.estoque.trim()) erros.estoque = "O estoque é obrigatório.";
+    else if (!/^\d+$/.test(form.estoque.trim())) erros.estoque = "O estoque precisa ser um número inteiro.";
+
+    if (!form.categoriaId) erros.categoriaId = "A categoria é obrigatória.";
+
+    return erros;
+}
+
+// Campo obrigatório do CRUD de categorias.
+export function validarCategoria(nome: string) {
+    if (!nome.trim()) return "O nome é obrigatório.";
+    return "";
+}
+
+export type EnderecoForm = {
+    rua: string;
+    numero: string;
+    bairro: string;
+    cidade: string;
+    estado: string;
+    cep: string;
+}
+
+export type ErrosEndereco = {
+    rua?: string;
+    numero?: string;
+    bairro?: string;
+    cidade?: string;
+    estado?: string;
+    cep?: string;
+}
+
+export function mascaraCep(valor: string) {
+    const digitos = valor.replace(/\D/g, "").slice(0, 8);
+    return digitos.replace(/(\d{5})(\d)/, "$1-$2");
+}
+
+// Campos obrigatórios do CRUD de endereços.
+export function validarEndereco(form: EnderecoForm): ErrosEndereco {
+    const erros: ErrosEndereco = {};
+
+    if (!form.rua.trim()) erros.rua = "A rua é obrigatória.";
+    if (!form.numero.trim()) erros.numero = "O número é obrigatório.";
+    if (!form.bairro.trim()) erros.bairro = "O bairro é obrigatório.";
+    if (!form.cidade.trim()) erros.cidade = "A cidade é obrigatória.";
+
+    if (!form.estado.trim()) erros.estado = "O estado é obrigatório.";
+    else if (!/^[A-Za-z]{2}$/.test(form.estado.trim())) erros.estado = "Use a sigla com 2 letras.";
+
+    if (!form.cep.trim()) erros.cep = "O CEP é obrigatório.";
+    else if (!/^\d{8}$/.test(form.cep.replace(/\D/g, ""))) erros.cep = "O CEP deve conter 8 números.";
+
+    return erros;
+}
+
+export type VendaForm = {
+    status: string;
+    valorTotal: string;
+}
+
+export type ErrosVenda = {
+    status?: string;
+    valorTotal?: string;
+}
+
+export function validarVenda(form: VendaForm): ErrosVenda {
+    const erros: ErrosVenda = {};
+
+    if (!form.status.trim()) erros.status = "O status é obrigatório.";
+
+    if (!form.valorTotal.trim()) erros.valorTotal = "O valor é obrigatório.";
+    else {
+        const valor = Number(form.valorTotal.replace(",", "."));
+        if (!Number.isFinite(valor) || valor < 0) erros.valorTotal = "Informe um valor válido.";
+    }
 
     return erros;
 }
